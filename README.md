@@ -1,0 +1,1 @@
+Small application to apply image as a wallpaper as a fallback
