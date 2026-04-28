@@ -1,60 +1,47 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/mainLayout"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".MainActivity">
+    android:layout_height="match_parent">
 
 
     <ImageView
         android:id="@+id/wallpaperPreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginBottom="431dp"
         android:contentDescription="@string/wallpaper_preview"
-        android:scaleType="centerCrop"
-
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
+        android:scaleType="centerCrop" />
 
     <Button
         android:id="@+id/setWallpaperSystem"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Main"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintHorizontal_bias="0.38"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/wallpaperPreview"
-        app:layout_constraintVertical_bias="0.921" />
+        android:layout_gravity="bottom"
+        android:text="Main" />
 
     <Button
         android:id="@+id/setWallpaperLock"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginStart="124dp"
-        android:text="Lockscreen"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/wallpaperPreview"
-        app:layout_constraintVertical_bias="0.921" />
+        android:layout_gravity="bottom"
+        android:text="Lockscreen" />
 
     <Button
         android:id="@+id/setWallpaperAll"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_marginTop="360dp"
-        android:text="All"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.214"
-        app:layout_constraintTop_toBottomOf="@+id/wallpaperPreview"
-        app:layout_constraintVertical_bias="0.0" />
+        android:layout_gravity="bottom|end"
+        android:text="All" />
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <Button
+        android:id="@+id/cropImage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:layout_gravity="top|end"
+        android:text="Crop Image" />
+
+
+</FrameLayout>
