@@ -13,35 +13,26 @@
         android:scaleType="centerCrop" />
 
     <Button
-        android:id="@+id/setWallpaperSystem"
-        android:layout_width="wrap_content"
+        android:id="@+id/setWallpaperButton"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom"
-        android:text="Main" />
-
-    <Button
-        android:id="@+id/setWallpaperLock"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="124dp"
-        android:layout_gravity="bottom"
-        android:text="Lockscreen" />
-
-    <Button
-        android:id="@+id/setWallpaperAll"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="360dp"
-        android:layout_gravity="bottom|end"
-        android:text="All" />
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="Set wallpaper" />
 
     <Button
         android:id="@+id/cropImage"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_marginTop="16dp"
         android:layout_gravity="top|end"
+        android:layout_marginTop="16dp"
         android:text="Crop Image" />
 
+    <Button
+        android:id="@+id/openExplorer"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|end"
+        android:layout_marginTop="72dp"
+        android:text="Open explorer" />
 
 </FrameLayout>
