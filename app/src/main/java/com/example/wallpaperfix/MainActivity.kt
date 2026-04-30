@@ -1,5 +1,6 @@
 package com.example.wallpaperfix
 
+import android.annotation.SuppressLint
 import android.app.Dialog
 import android.app.WallpaperManager
 import android.content.Intent
@@ -19,13 +20,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.yalantis.ucrop.UCrop
 import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
-    private var imageUri: Uri? = null
+    private lateinit var imageManager: ImageManager
     private val wallpaperCacheFileName = "cropped_wallpaper_cache.jpg"
     private lateinit var imageCacheOutputUri: Uri
     private lateinit var wallpaperPreview: ImageView
@@ -37,18 +39,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var openFileExplorer: Button
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-
-
     private val pickMediaLauncher = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         uri?.let {
-            imageUri = uri
-            wallpaperPreview.setImageURI(null)
-            wallpaperPreview.setImageURI(it)
+            imageManager.updateUri(uri)
+            imageManager.refreshPreviewImage()
         }
     }
-
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,7 +68,31 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable("imageUri", imageUri)
+        outState.putParcelable("imageUri", imageManager.getUri())
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        Log.d(Tags.NEWINTENT, "Handling incoming intent, app already opened")
+        handleIncomingIntent(intent)
+    }
+
+    private fun handleIncomingIntent(intent: Intent) {
+        Log.i(Tags.INCOMINGINTENT, "handleIncomingIntent")
+        when (intent.action) {
+            Intent.ACTION_VIEW -> handleImageGeneric(intent)
+            Intent.ACTION_SEND -> handleImageGeneric(intent)
+            else -> Log.d(Tags.INCOMINGINTENT, "Ignoring intent ${intent.action}")
+        }
+    }
+
+    private fun handleImageGeneric(intent: Intent) {
+        val sharedUri: Uri? = intent.data
+        Log.d(Tags.HANDLEIMAGEGENERIC, sharedUri.toString())
+        imageManager.updateUri(sharedUri)
+        imageManager.refreshPreviewImage()
+        Log.d(Tags.URIDEBUG, "handleImageGeneric set uri as ${imageManager.getUri()}")
     }
 
     private fun launchUCropActivity(uri: Uri) {
@@ -101,10 +123,9 @@ class MainActivity : AppCompatActivity() {
         when (result.resultCode) {
             RESULT_OK -> {
                 val croppedUri = UCrop.getOutput(result.data!!)
-                imageUri = croppedUri
-                wallpaperPreview.setImageURI(null)
-                wallpaperPreview.setImageURI(imageUri)
-                Log.d(Tags.URIDEBUG, "cropResultLauncher set imageUri as $imageUri")
+                imageManager.updateUri(croppedUri)
+                imageManager.refreshPreviewImage()
+                Log.d(Tags.URIDEBUG, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
             }
 
             RESULT_CANCELED -> {
@@ -118,63 +139,18 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-
-    override fun onNewIntent(intent: Intent) {
-        super.onNewIntent(intent)
-        setIntent(intent)
-        Log.d(Tags.NEWINTENT, "Handling incoming intent, app already opened")
-        handleIncomingIntent(intent)
-    }
-
-    private fun handleIncomingIntent(intent: Intent) {
-        Log.i(Tags.INCOMINGINTENT, "handleIncomingIntent")
-        when (intent.action) {
-            Intent.ACTION_VIEW -> handleImageGeneric(intent)
-            Intent.ACTION_SEND -> handleImageGeneric(intent)
-            else -> Log.d(Tags.INCOMINGINTENT, "Ignoring intent ${intent.action}")
-        }
-    }
-
-    private fun handleImageGeneric(intent: Intent) {
-        val sharedUri: Uri? = intent.data
-        Log.d(Tags.HANDLEIMAGEGENERIC, sharedUri.toString())
-        imageUri = sharedUri
-        wallpaperPreview.setImageURI(imageUri)
-        Log.d(Tags.URIDEBUG, "handleImageGeneric set uri as $imageUri")
-    }
-
-
-//    private fun handleViewImage(intent: Intent) {
-//        Log.d(debugTag, "handleViewImage")
-//        val uri: Uri? = intent.data
-//        Log.d(debugTag, uri.toString())
-//    }
-//
-//    private fun handleSendImage(intent: Intent) {
-//        Log.d(debugTag, "handleSendImage")
-//        val uri: Uri? = intent.data
-//        Log.d(debugTag, uri.toString())
-//    }
-
-
-    private fun setWallpaper(uri: Uri, which: Int) {
-        val wallpaperManager = WallpaperManager.getInstance(this)
-
-        contentResolver.openInputStream(uri)?.use { stream ->
-            wallpaperManager.setStream(stream, null, true, which)
-        }
-        Log.d(Tags.SETWALLPAPER, "Wallpaper applied")
-    }
-
+    @SuppressLint("InflateParams")
     private fun setupInterface(savedInstanceState: Bundle?) {
         setContentView(R.layout.activity_main)
         enableEdgeToEdge()
 
         dialog = BottomSheetDialog(this)
         setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
-
+        dialog.setContentView(setWallpaperLayout)
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
+
+        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope)
 
         setWallpaperSystem = setWallpaperLayout.findViewById(R.id.optionHome)
         setWallpaperLock = setWallpaperLayout.findViewById(R.id.optionLock)
@@ -182,26 +158,21 @@ class MainActivity : AppCompatActivity() {
 
         setWallpaper = findViewById(R.id.setWallpaperButton)
 
-
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
 
         setWallpaperSystem.setOnClickListener {
-            imageUri?.let {
-                setWallpaper(it, WallpaperManager.FLAG_SYSTEM)
-            }
+            imageManager.setWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
         setWallpaperLock.setOnClickListener {
-            imageUri?.let {
-                setWallpaper(it, WallpaperManager.FLAG_LOCK)
-            }
+            imageManager.setWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaperAll.setOnClickListener {
-            imageUri?.let {
-                setWallpaper(it, WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
-            }
+            imageManager.setWallpaper(
+                WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
+            )
         }
 
         setWallpaper.setOnClickListener {
@@ -210,7 +181,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         cropImageButton.setOnClickListener {
-            imageUri?.let {
+            imageManager.getUri()?.let {
                 launchUCropActivity(it)
             }
         }
@@ -238,19 +209,17 @@ class MainActivity : AppCompatActivity() {
         }
 
 
-
         if (savedInstanceState != null) {
-            imageUri =
+            val savedImageUri =
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
                     savedInstanceState.getParcelable("imageUri", Uri::class.java)
                 } else {
                     @Suppress("DEPRECATION")
                     savedInstanceState.getParcelable("imageUri")
                 }
-            imageUri?.let {
-                wallpaperPreview.setImageURI(it)
-            }
-            Log.d(Tags.URIDEBUG, "setupInterface onCreate savedImageUri as $imageUri")
+            imageManager.updateUri(savedImageUri)
+            imageManager.refreshPreviewImage()
+            Log.d(Tags.URIDEBUG, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
         }
     }
 }
