@@ -2,12 +2,12 @@ package com.example.wallpaperfix
 
 import android.app.WallpaperManager
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.net.Uri
+import android.os.Build
 import android.provider.MediaStore
-import android.util.Log
 import android.widget.ImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -35,19 +35,19 @@ class ImageManager(
 
     fun refreshPreviewImage() {
         imageUri?.let {
-            val bitmap = MediaStore.Images.Media.getBitmap(context.contentResolver, it)
-
-            val cropped = Bitmap.createBitmap(
-                bitmap,
-                cropHint!!.left,
-                cropHint!!.top,
-                cropHint!!.width(),
-                cropHint!!.height()
-            )
+            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+                val source = ImageDecoder.createSource(context.contentResolver, it)
+                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                    decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
+                }
+            } else {
+                @Suppress("DEPRECATION")
+                MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+            }
 
 
             imagePreview.setImageURI(null)
-            imagePreview.setImageBitmap(cropped)
+            imagePreview.setImageBitmap(bitmap)
         }
     }
 
@@ -61,21 +61,21 @@ class ImageManager(
                         context.contentResolver.openInputStream(it)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, which)
                         }
-                        Log.d(Tags.SETWALLPAPER, "Wallpaper applied")
+                        Logger.log(Tags.SETWALLPAPER, "Wallpaper applied")
                     }
                 }
             } catch (e: IOException) {
-                Log.e(Tags.SETWALLPAPER, e.toString())
+                Logger.log(Tags.SETWALLPAPER, e.toString())
             }
 
         }
     }
 
     fun calculateCropHint(uri: Uri): Rect {
-        Log.d(Tags.DIMENSIONSCROP, "========================================")
+        Logger.log(Tags.DIMENSIONSCROP, "========================================")
         val (screenWidth, screenHeight) = getScreenDimensions()
         val (imageWidth, imageHeight) = getImageDimensions(uri)
-        Log.d(
+        Logger.log(
             Tags.DIMENSIONSCROP,
             "screenWidth $screenWidth, screenHeight $screenHeight, imageWidth $imageWidth, imageHeight $imageHeight"
         )
@@ -84,17 +84,17 @@ class ImageManager(
             screenWidth.toFloat() / imageWidth,
             screenHeight.toFloat() / imageHeight
         )
-        Log.d(Tags.DIMENSIONSCROP, "scale $scale")
+        Logger.log(Tags.DIMENSIONSCROP, "scale $scale")
 
         val scaledWidth = imageWidth * scale
         val scaledHeight = imageHeight * scale
 
-        Log.d(Tags.DIMENSIONSCROP, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
+        Logger.log(Tags.DIMENSIONSCROP, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
 
         val offsetX = (scaledWidth - screenWidth) / 2f
         val offsetY = (scaledHeight - screenHeight) / 2f
 
-        Log.d(Tags.DIMENSIONSCROP, "offsetX $offsetX, offsetY $offsetY")
+        Logger.log(Tags.DIMENSIONSCROP, "offsetX $offsetX, offsetY $offsetY")
 
 
         val left = (offsetX / scale).toInt().coerceIn(0, imageWidth)

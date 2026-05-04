@@ -7,7 +7,6 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Bundle
-import android.util.Log
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
@@ -54,10 +53,10 @@ class MainActivity : AppCompatActivity() {
         setupInterface(savedInstanceState)
         imageCacheOutputUri = Uri.fromFile(File(cacheDir, wallpaperCacheFileName))
         if (savedInstanceState == null) {
-            Log.d(Tags.GENERIC, "Handling incoming intent from fresh start")
+            Logger.log(Tags.GENERIC, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
-        Log.d(Tags.GENERIC, "App created")
+        Logger.log(Tags.GENERIC, "App created")
     }
 
     override fun onDestroy() {
@@ -74,40 +73,35 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        Log.d(Tags.NEWINTENT, "Handling incoming intent, app already opened")
+        Logger.log(Tags.NEWINTENT, "Handling incoming intent, app already opened")
         handleIncomingIntent(intent)
     }
 
     private fun handleIncomingIntent(intent: Intent) {
-        Log.i(Tags.INCOMINGINTENT, "handleIncomingIntent")
+        Logger.log(Tags.INCOMINGINTENT, "handleIncomingIntent")
         when (intent.action) {
             Intent.ACTION_VIEW -> handleImageGeneric(intent)
             Intent.ACTION_SEND -> handleImageGeneric(intent)
-            else -> Log.d(Tags.INCOMINGINTENT, "Ignoring intent ${intent.action}")
+            else -> Logger.log(Tags.INCOMINGINTENT, "Ignoring intent ${intent.action}")
         }
     }
 
     private fun handleImageGeneric(intent: Intent) {
         val sharedUri: Uri? = intent.data
-        Log.d(Tags.HANDLEIMAGEGENERIC, sharedUri.toString())
+        Logger.log(Tags.HANDLEIMAGEGENERIC, sharedUri.toString())
         imageManager.updateUri(sharedUri)
         imageManager.refreshPreviewImage()
-        Log.d(Tags.URIDEBUG, "handleImageGeneric set uri as ${imageManager.getUri()}")
+        Logger.log(Tags.URIDEBUG, "handleImageGeneric set uri as ${imageManager.getUri()}")
     }
 
     private fun launchUCropActivity(uri: Uri) {
 
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
-//
+
         val options = UCrop.Options().apply {
-//            setToolbarTitle("Crop Wallpaper")
             setCompressionFormat(Bitmap.CompressFormat.JPEG)
             setCompressionQuality(100)
-//            setCropGridRowCount(3)
-//            setCropGridColumnCount(3)
-//            setShowCropGrid(true)
-//            setFreeStyleCropEnabled(false)
         }
 
         UCrop.of(uri, imageCacheOutputUri)
@@ -125,16 +119,16 @@ class MainActivity : AppCompatActivity() {
                 val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateUri(croppedUri)
                 imageManager.refreshPreviewImage()
-                Log.d(Tags.URIDEBUG, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
+                Logger.log(Tags.URIDEBUG, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
             }
 
             RESULT_CANCELED -> {
-                Log.d(Tags.CROPRESULT, "User cancelled crop")
+                Logger.log(Tags.CROPRESULT, "User cancelled crop")
             }
 
             UCrop.RESULT_ERROR -> {
                 val error = UCrop.getError(result.data!!)
-                Log.e(Tags.CROPRESULT, "Crop error: $error")
+                Logger.log(Tags.CROPRESULT, "Crop error: $error")
             }
         }
     }
@@ -219,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                 }
             imageManager.updateUri(savedImageUri)
             imageManager.refreshPreviewImage()
-            Log.d(Tags.URIDEBUG, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
+            Logger.log(Tags.URIDEBUG, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
         }
     }
 }
