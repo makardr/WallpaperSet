@@ -9,4 +9,5 @@ object Tags {
     const val HANDLEIMAGEGENERIC = "handleImageGeneric"
     const val SETWALLPAPER = "setWallpaper"
     const val SETUPINTERFACE = "setupInterface"
+    const val DIMENSIONSCROP = "cropDimensions"
 }
