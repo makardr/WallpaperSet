@@ -8,6 +8,7 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.widget.Button
 import android.widget.ImageView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -18,17 +19,23 @@ import java.io.IOException
 class ImageManager(
     private val context: Context,
     private val imagePreview: ImageView,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val setWallpaper: Button
 ) {
     private var imageUri: Uri? = null
     private var cropHint: Rect? = null
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
+    init {
+        setWallpaper.isEnabled = imageUri != null
+    }
+
     fun updateUri(uri: Uri?) {
         imageUri = uri
         cropHint = uri?.let { calculateCropHint(it) }
         refreshPreviewImage()
+        setWallpaper.isEnabled = true
     }
 
     fun getUri(): Uri? {

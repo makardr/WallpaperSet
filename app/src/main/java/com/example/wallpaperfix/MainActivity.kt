@@ -119,7 +119,10 @@ class MainActivity : AppCompatActivity() {
                 val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateUri(croppedUri)
                 imageManager.refreshPreviewImage()
-                Logger.log(Tags.UriDebug, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
+                Logger.log(
+                    Tags.UriDebug,
+                    "cropResultLauncher set imageUri as ${imageManager.getUri()}"
+                )
             }
 
             RESULT_CANCELED -> {
@@ -144,8 +147,6 @@ class MainActivity : AppCompatActivity() {
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
-        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope)
-
         setWallpaperSystem = setWallpaperLayout.findViewById(R.id.optionHome)
         setWallpaperLock = setWallpaperLayout.findViewById(R.id.optionLock)
         setWallpaperAll = setWallpaperLayout.findViewById(R.id.optionBoth)
@@ -154,6 +155,8 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
+
+        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper)
 
         setWallpaperSystem.setOnClickListener {
             imageManager.setWallpaper(WallpaperManager.FLAG_SYSTEM)
@@ -213,7 +216,10 @@ class MainActivity : AppCompatActivity() {
                 }
             imageManager.updateUri(savedImageUri)
             imageManager.refreshPreviewImage()
-            Logger.log(Tags.UriDebug, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
+            Logger.log(
+                Tags.UriDebug,
+                "setupInterface onCreate savedImageUri as ${imageManager.getUri()}"
+            )
         }
     }
 }
