@@ -53,10 +53,10 @@ class MainActivity : AppCompatActivity() {
         setupInterface(savedInstanceState)
         imageCacheOutputUri = Uri.fromFile(File(cacheDir, wallpaperCacheFileName))
         if (savedInstanceState == null) {
-            Logger.log(Tags.GENERIC, "Handling incoming intent from fresh start")
+            Logger.log(Tags.Generic, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
-        Logger.log(Tags.GENERIC, "App created")
+        Logger.log(Tags.Generic, "App created")
     }
 
     override fun onDestroy() {
@@ -73,25 +73,25 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        Logger.log(Tags.NEWINTENT, "Handling incoming intent, app already opened")
+        Logger.log(Tags.NewIntent, "Handling incoming intent, app already opened")
         handleIncomingIntent(intent)
     }
 
     private fun handleIncomingIntent(intent: Intent) {
-        Logger.log(Tags.INCOMINGINTENT, "handleIncomingIntent")
+        Logger.log(Tags.IncomingIntent, "handleIncomingIntent")
         when (intent.action) {
             Intent.ACTION_VIEW -> handleImageGeneric(intent)
             Intent.ACTION_SEND -> handleImageGeneric(intent)
-            else -> Logger.log(Tags.INCOMINGINTENT, "Ignoring intent ${intent.action}")
+            else -> Logger.log(Tags.IncomingIntent, "Ignoring intent ${intent.action}")
         }
     }
 
     private fun handleImageGeneric(intent: Intent) {
         val sharedUri: Uri? = intent.data
-        Logger.log(Tags.HANDLEIMAGEGENERIC, sharedUri.toString())
+        Logger.log(Tags.HandleImageGeneric, sharedUri.toString())
         imageManager.updateUri(sharedUri)
         imageManager.refreshPreviewImage()
-        Logger.log(Tags.URIDEBUG, "handleImageGeneric set uri as ${imageManager.getUri()}")
+        Logger.log(Tags.UriDebug, "handleImageGeneric set uri as ${imageManager.getUri()}")
     }
 
     private fun launchUCropActivity(uri: Uri) {
@@ -119,16 +119,16 @@ class MainActivity : AppCompatActivity() {
                 val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateUri(croppedUri)
                 imageManager.refreshPreviewImage()
-                Logger.log(Tags.URIDEBUG, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
+                Logger.log(Tags.UriDebug, "cropResultLauncher set imageUri as ${imageManager.getUri()}")
             }
 
             RESULT_CANCELED -> {
-                Logger.log(Tags.CROPRESULT, "User cancelled crop")
+                Logger.log(Tags.CropResult, "User cancelled crop")
             }
 
             UCrop.RESULT_ERROR -> {
                 val error = UCrop.getError(result.data!!)
-                Logger.log(Tags.CROPRESULT, "Crop error: $error")
+                Logger.log(Tags.CropResult, "Crop error: $error")
             }
         }
     }
@@ -213,7 +213,7 @@ class MainActivity : AppCompatActivity() {
                 }
             imageManager.updateUri(savedImageUri)
             imageManager.refreshPreviewImage()
-            Logger.log(Tags.URIDEBUG, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
+            Logger.log(Tags.UriDebug, "setupInterface onCreate savedImageUri as ${imageManager.getUri()}")
         }
     }
 }

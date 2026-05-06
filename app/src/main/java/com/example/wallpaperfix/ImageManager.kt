@@ -22,6 +22,8 @@ class ImageManager(
 ) {
     private var imageUri: Uri? = null
     private var cropHint: Rect? = null
+    private val screenWidth: Int = context.resources.displayMetrics.widthPixels
+    private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     fun updateUri(uri: Uri?) {
         imageUri = uri
@@ -61,22 +63,21 @@ class ImageManager(
                         context.contentResolver.openInputStream(it)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, which)
                         }
-                        Logger.log(Tags.SETWALLPAPER, "Wallpaper applied")
+                        Logger.log(Tags.SetWallpaper, "Wallpaper applied")
                     }
                 }
             } catch (e: IOException) {
-                Logger.log(Tags.SETWALLPAPER, e.toString())
+                Logger.log(Tags.SetWallpaper, e.toString())
             }
 
         }
     }
 
-    fun calculateCropHint(uri: Uri): Rect {
-        Logger.log(Tags.DIMENSIONSCROP, "========================================")
-        val (screenWidth, screenHeight) = getScreenDimensions()
+    private fun calculateCropHint(uri: Uri): Rect {
+        Logger.log(Tags.DimensionCrop, "========================================")
         val (imageWidth, imageHeight) = getImageDimensions(uri)
         Logger.log(
-            Tags.DIMENSIONSCROP,
+            Tags.DimensionCrop,
             "screenWidth $screenWidth, screenHeight $screenHeight, imageWidth $imageWidth, imageHeight $imageHeight"
         )
 
@@ -84,17 +85,17 @@ class ImageManager(
             screenWidth.toFloat() / imageWidth,
             screenHeight.toFloat() / imageHeight
         )
-        Logger.log(Tags.DIMENSIONSCROP, "scale $scale")
+        Logger.log(Tags.DimensionCrop, "scale $scale")
 
         val scaledWidth = imageWidth * scale
         val scaledHeight = imageHeight * scale
 
-        Logger.log(Tags.DIMENSIONSCROP, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
+        Logger.log(Tags.DimensionCrop, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
 
         val offsetX = (scaledWidth - screenWidth) / 2f
         val offsetY = (scaledHeight - screenHeight) / 2f
 
-        Logger.log(Tags.DIMENSIONSCROP, "offsetX $offsetX, offsetY $offsetY")
+        Logger.log(Tags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
 
 
         val left = (offsetX / scale).toInt().coerceIn(0, imageWidth)
@@ -105,7 +106,7 @@ class ImageManager(
         return Rect(left, top, right, bottom)
     }
 
-    fun getImageDimensions(uri: Uri): Pair<Int, Int> {
+    private fun getImageDimensions(uri: Uri): Pair<Int, Int> {
         val options = BitmapFactory.Options().apply {
             inJustDecodeBounds = true
         }
@@ -113,12 +114,5 @@ class ImageManager(
             BitmapFactory.decodeStream(stream, null, options)
         }
         return Pair(options.outWidth, options.outHeight)
-    }
-
-    fun getScreenDimensions(): Pair<Int, Int> {
-        return Pair(
-            context.resources.displayMetrics.widthPixels,
-            context.resources.displayMetrics.heightPixels
-        )
     }
 }
