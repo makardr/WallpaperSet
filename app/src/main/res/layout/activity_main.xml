@@ -19,20 +19,27 @@
         android:layout_gravity="bottom|center_horizontal"
         android:text="Set wallpaper" />
 
-    <Button
+    <ImageButton
         android:id="@+id/cropImage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_width="55dp"
+        android:layout_height="55dp"
         android:layout_gravity="top|end"
-        android:layout_marginTop="16dp"
-        android:text="Crop Image" />
+        android:layout_marginTop="10dp"
+        android:layout_marginEnd="10dp"
+        android:contentDescription="Crop Image"
+        android:src="@drawable/crop_image_button"
+        android:background="@android:color/transparent"
+        />
 
-    <Button
+    <ImageButton
         android:id="@+id/openExplorer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="top|end"
-        android:layout_marginTop="72dp"
-        android:text="Open explorer" />
+        android:layout_width="55dp"
+        android:layout_height="55dp"
+        android:layout_gravity="top|start"
+        android:layout_marginStart="10dp"
+        android:layout_marginTop="10dp"
+        android:background="@android:color/transparent"
+        android:contentDescription="Open explorer"
+        android:src="@drawable/open_file_explorer_button" />
 
 </FrameLayout>

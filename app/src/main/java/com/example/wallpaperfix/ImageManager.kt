@@ -35,6 +35,7 @@ class ImageManager(
         imageUri = uri
         cropHint = uri?.let { calculateCropHint(it) }
         refreshPreviewImage()
+        //Instead pass a live data variable from Main that will trigger an update function inside main
         setWallpaper.isEnabled = true
     }
 

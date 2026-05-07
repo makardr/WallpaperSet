@@ -10,6 +10,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageButton
 import android.widget.ImageView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
@@ -18,6 +19,7 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -34,8 +36,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaperLock: Button
     private lateinit var setWallpaperAll: Button
     private lateinit var setWallpaper: Button
-    private lateinit var cropImageButton: Button
-    private lateinit var openFileExplorer: Button
+    private lateinit var cropImageButton: ImageButton
+    private lateinit var openFileExplorer: ImageButton
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
     private val pickMediaLauncher = registerForActivityResult(
@@ -197,12 +199,15 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(cropImageButton) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                topMargin = systemBars.top
+        listOf(cropImageButton, openFileExplorer).forEach { button ->
+            val xmlMarginTopRecord = button.marginTop
+            ViewCompat.setOnApplyWindowInsetsListener(button) { v, insets ->
+                val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
+                v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
+                    topMargin = systemBars.top + xmlMarginTopRecord
+                }
+                insets
             }
-            insets
         }
 
 
