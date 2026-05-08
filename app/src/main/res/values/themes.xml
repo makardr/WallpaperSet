@@ -9,4 +9,23 @@
     </style>
 
     <style name="Theme.WallpaperFix" parent="Base.Theme.WallpaperFix" />
+
+    <style name="ImgButton" parent="Widget.AppCompat.ImageButton">
+        <item name="android:layout_width">55dp</item>
+        <item name="android:layout_height">55dp</item>
+        <item name="android:layout_marginStart">10dp</item>
+        <item name="android:layout_marginTop">10dp</item>
+        <item name="android:layout_marginEnd">10dp</item>
+        <item name="android:background">@android:color/transparent</item>
+    </style>
+
+    <style name="OptionsButton" parent="Widget.MaterialComponents.Button.TextButton">
+        <item name="android:layout_width">match_parent</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:textColor">@color/black</item>
+        <item name="backgroundTint">@android:color/transparent</item>
+        <item name="rippleColor">@color/ripple_light_gray</item>
+        <item name="strokeWidth">0dp</item>
+    </style>
+
 </resources>

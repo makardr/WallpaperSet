@@ -23,6 +23,7 @@ import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.button.MaterialButton
 import com.yalantis.ucrop.UCrop
 import java.io.File
 
@@ -35,7 +36,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaperSystem: Button
     private lateinit var setWallpaperLock: Button
     private lateinit var setWallpaperAll: Button
-    private lateinit var setWallpaper: Button
+    private lateinit var setWallpaper: MaterialButton
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
     private lateinit var dialog: Dialog
@@ -172,6 +173,7 @@ class MainActivity : AppCompatActivity() {
             imageManager.setWallpaper(
                 WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
             )
+            Logger.log(Tags.Generic, "Set wallpaper clicked")
         }
 
         setWallpaper.setOnClickListener {

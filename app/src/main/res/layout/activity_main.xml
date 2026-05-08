@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/mainLayout"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
@@ -9,37 +10,30 @@
         android:id="@+id/wallpaperPreview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:contentDescription="@string/wallpaper_preview"
+        android:contentDescription="@string/wallpaper_preview_description"
         android:scaleType="centerCrop" />
-
-    <Button
-        android:id="@+id/setWallpaperButton"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_gravity="bottom|center_horizontal"
-        android:text="Set wallpaper" />
 
     <ImageButton
         android:id="@+id/cropImage"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
+        style="@style/ImgButton"
         android:layout_gravity="top|end"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="10dp"
-        android:contentDescription="Crop Image"
-        android:src="@drawable/crop_image_button"
-        android:background="@android:color/transparent"
-        />
+        android:contentDescription="@string/crop_selected_image_description"
+        android:src="@drawable/crop_image_button" />
 
     <ImageButton
         android:id="@+id/openExplorer"
-        android:layout_width="55dp"
-        android:layout_height="55dp"
+        style="@style/ImgButton"
         android:layout_gravity="top|start"
-        android:layout_marginStart="10dp"
-        android:layout_marginTop="10dp"
-        android:background="@android:color/transparent"
-        android:contentDescription="Open explorer"
+        android:contentDescription="@string/open_image_explorer_description"
         android:src="@drawable/open_file_explorer_button" />
 
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/setWallpaperButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="bottom|center_horizontal"
+        android:text="Set wallpaper"
+        android:textColor="@color/button_text"
+        app:backgroundTint="@color/button_background"
+        app:cornerRadius="12dp" />
 </FrameLayout>

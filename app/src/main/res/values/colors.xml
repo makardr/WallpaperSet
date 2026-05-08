@@ -2,4 +2,7 @@
 <resources>
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
+    <color name="dark_gray_transparent">#80000000</color>
+    <color name="button_disabled">#33222222</color>
+    <color name="ripple_light_gray">#1F000000</color>
 </resources>
