@@ -16,15 +16,16 @@
         <item name="android:layout_marginStart">10dp</item>
         <item name="android:layout_marginTop">10dp</item>
         <item name="android:layout_marginEnd">10dp</item>
-        <item name="android:background">@android:color/transparent</item>
+        <item name="android:background">@drawable/bg_icon_overlay</item>
+        <item name="tint">@android:color/white</item>
     </style>
 
     <style name="OptionsButton" parent="Widget.MaterialComponents.Button.TextButton">
         <item name="android:layout_width">match_parent</item>
         <item name="android:layout_height">48dp</item>
-        <item name="android:textColor">@color/black</item>
+        <item name="android:textColor">@color/text_color</item>
         <item name="backgroundTint">@android:color/transparent</item>
-        <item name="rippleColor">@color/ripple_light_gray</item>
+        <item name="rippleColor">@color/ripple_color</item>
         <item name="strokeWidth">0dp</item>
     </style>
 

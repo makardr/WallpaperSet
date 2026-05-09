@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Määra taustapilt</string>
+    <string name="wallpaper_preview_description">Taustapildi eelvaade</string>
+    <string name="crop_selected_image_description">Lõika valitud pilt</string>
+    <string name="open_image_explorer_description">Ava pildibrauser</string>
+    <string name="tooltip_content">Kasuta üleval vasakul olevat nuppu pildi valimiseks või jaga pilti siia selle rakenduse kaudu.</string>
+    <string name="set_wallpaper_button">Määra taustapilt</string>
+    <string name="set_wallpaper_home_option">Avakuva</string>
+    <string name="set_wallpaper_lockscreen_option">Lukustuskuva</string>
+    <string name="set_wallpaper_both_option">Avakuva ja lukustuskuva</string>
+</resources>

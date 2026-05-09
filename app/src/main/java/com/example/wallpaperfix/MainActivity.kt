@@ -12,6 +12,7 @@ import android.view.ViewGroup
 import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
+import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -19,6 +20,7 @@ import androidx.activity.result.contract.ActivityResultContracts.StartActivityFo
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
@@ -39,6 +41,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaper: MaterialButton
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
+    private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
     private val pickMediaLauncher = registerForActivityResult(
@@ -150,6 +153,8 @@ class MainActivity : AppCompatActivity() {
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
+        tooltip = findViewById(R.id.tooltip)
+
         setWallpaperSystem = setWallpaperLayout.findViewById(R.id.optionHome)
         setWallpaperLock = setWallpaperLayout.findViewById(R.id.optionLock)
         setWallpaperAll = setWallpaperLayout.findViewById(R.id.optionBoth)
@@ -159,7 +164,7 @@ class MainActivity : AppCompatActivity() {
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
 
-        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper)
+        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper, tooltip)
 
         setWallpaperSystem.setOnClickListener {
             imageManager.setWallpaper(WallpaperManager.FLAG_SYSTEM)
@@ -201,12 +206,14 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        listOf(cropImageButton, openFileExplorer).forEach { button ->
+        listOf(cropImageButton, openFileExplorer, setWallpaper).forEach { button ->
             val xmlMarginTopRecord = button.marginTop
+            val xmlMarginBottomRecord = button.marginBottom
             ViewCompat.setOnApplyWindowInsetsListener(button) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
                     topMargin = systemBars.top + xmlMarginTopRecord
+                    bottomMargin = systemBars.bottom + xmlMarginBottomRecord
                 }
                 insets
             }

@@ -3,4 +3,9 @@
     <string name="wallpaper_preview_description">Wallpaper preview</string>
     <string name="crop_selected_image_description">Crop selected image</string>
     <string name="open_image_explorer_description">Open image explorer</string>
+    <string name="tooltip_content">Choose an image using the button in the top-left or by sharing it to this app.</string>
+    <string name="set_wallpaper_button">Set Wallpaper</string>
+    <string name="set_wallpaper_home_option">Home screen</string>
+    <string name="set_wallpaper_lockscreen_option">Lock screen</string>
+    <string name="set_wallpaper_both_option">Home and lock screen</string>
 </resources>

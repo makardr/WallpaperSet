@@ -13,12 +13,25 @@
         android:contentDescription="@string/wallpaper_preview_description"
         android:scaleType="centerCrop" />
 
+    <TextView
+        android:id="@+id/tooltip"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginStart="35dp"
+        android:layout_marginEnd="35dp"
+        android:text="@string/tooltip_content"
+        android:textColor="@color/text_color"
+        android:textSize="20sp" />
+
     <ImageButton
         android:id="@+id/cropImage"
         style="@style/ImgButton"
         android:layout_gravity="top|end"
+        android:background="@drawable/bg_icon_overlay"
         android:contentDescription="@string/crop_selected_image_description"
-        android:src="@drawable/crop_image_button" />
+        android:src="@drawable/crop_image_button"
+        app:tint="@android:color/white" />
 
     <ImageButton
         android:id="@+id/openExplorer"
@@ -32,7 +45,8 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|center_horizontal"
-        android:text="Set wallpaper"
+        android:layout_marginBottom="10dp"
+        android:text="@string/set_wallpaper_button"
         android:textColor="@color/button_text"
         app:backgroundTint="@color/button_background"
         app:cornerRadius="12dp" />

@@ -1,0 +1,11 @@
+<resources>
+    <string name="app_name">Установить обои</string>
+    <string name="wallpaper_preview_description">Предпросмотр обоев</string>
+    <string name="crop_selected_image_description">Обрезать выбранное изображение</string>
+    <string name="open_image_explorer_description">Открыть проводник изображений</string>
+    <string name="tooltip_content">Чтобы выбрать изображение для обоев используйте кнопку в верхнем левом углу или поделитесь изображением с этим приложением.</string>
+    <string name="set_wallpaper_button">Установить обои</string>
+    <string name="set_wallpaper_home_option">Главный экран</string>
+    <string name="set_wallpaper_lockscreen_option">Экран блокировки</string>
+    <string name="set_wallpaper_both_option">Главный экран и экран блокировки</string>
+</resources>

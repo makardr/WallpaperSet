@@ -8,8 +8,10 @@ import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.provider.MediaStore
+import android.view.View
 import android.widget.Button
 import android.widget.ImageView
+import android.widget.TextView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,7 +22,8 @@ class ImageManager(
     private val context: Context,
     private val imagePreview: ImageView,
     private val scope: CoroutineScope,
-    private val setWallpaper: Button
+    private val setWallpaper: Button,
+    private val tooltip: TextView
 ) {
     private var imageUri: Uri? = null
     private var cropHint: Rect? = null
@@ -37,6 +40,7 @@ class ImageManager(
         refreshPreviewImage()
         //Instead pass a live data variable from Main that will trigger an update function inside main
         setWallpaper.isEnabled = true
+        tooltip.visibility = View.INVISIBLE
     }
 
     fun getUri(): Uri? {
