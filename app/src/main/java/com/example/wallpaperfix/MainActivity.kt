@@ -44,11 +44,14 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
+    private var parcelableUri = "imageUri"
+    private var parcelableCroppedUri = "croppedImageUri"
+
     private val pickMediaLauncher = registerForActivityResult(
         ActivityResultContracts.PickVisualMedia()
     ) { uri: Uri? ->
         uri?.let {
-            imageManager.updateUri(uri)
+            imageManager.updateUri(uri, false)
             imageManager.refreshPreviewImage()
         }
     }
@@ -73,9 +76,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        outState.putParcelable("imageUri", imageManager.getUri())
+        //TODO: figure out what exactly am I saving here and why imageUri is hardcoded
+        outState.putParcelable(parcelableUri, imageManager.getOriginUri())
+        outState.putParcelable(parcelableCroppedUri, imageManager.getCroppedUri())
     }
 
+
+    //TODO: Capturing intent does not work on physical phone
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
@@ -95,16 +102,15 @@ class MainActivity : AppCompatActivity() {
     private fun handleImageGeneric(intent: Intent) {
         val sharedUri: Uri? = intent.data
         Logger.log(Tags.HandleImageGeneric, sharedUri.toString())
-        imageManager.updateUri(sharedUri)
+        imageManager.updateUri(sharedUri, false)
         imageManager.refreshPreviewImage()
-        Logger.log(Tags.UriDebug, "handleImageGeneric set uri as ${imageManager.getUri()}")
+        Logger.log(Tags.UriDebug, "handleImageGeneric set uri as ${imageManager.getOriginUri()}")
     }
 
     private fun launchUCropActivity(uri: Uri) {
-
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
-
+        //TODO: Play with ucrop options, possibly reduce ucrop unnecessary functionality (image size enhancer scale)
         val options = UCrop.Options().apply {
             setCompressionFormat(Bitmap.CompressFormat.JPEG)
             setCompressionQuality(100)
@@ -123,11 +129,11 @@ class MainActivity : AppCompatActivity() {
         when (result.resultCode) {
             RESULT_OK -> {
                 val croppedUri = UCrop.getOutput(result.data!!)
-                imageManager.updateUri(croppedUri)
+                imageManager.updateUri(croppedUri, true)
                 imageManager.refreshPreviewImage()
                 Logger.log(
                     Tags.UriDebug,
-                    "cropResultLauncher set imageUri as ${imageManager.getUri()}"
+                    "cropResultLauncher set imageUri as ${imageManager.getOriginUri()}"
                 )
             }
 
@@ -182,12 +188,13 @@ class MainActivity : AppCompatActivity() {
         }
 
         setWallpaper.setOnClickListener {
+            //TODO: After wallpaper is applied dialog should hide itself
             dialog.setContentView(setWallpaperLayout)
             dialog.show()
         }
 
         cropImageButton.setOnClickListener {
-            imageManager.getUri()?.let {
+            imageManager.getOriginUri()?.let {
                 launchUCropActivity(it)
             }
         }
@@ -223,17 +230,35 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState != null) {
             val savedImageUri =
                 if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getParcelable("imageUri", Uri::class.java)
+                    savedInstanceState.getParcelable(parcelableUri, Uri::class.java)
                 } else {
                     @Suppress("DEPRECATION")
-                    savedInstanceState.getParcelable("imageUri")
+                    savedInstanceState.getParcelable(parcelableUri)
                 }
-            imageManager.updateUri(savedImageUri)
-            imageManager.refreshPreviewImage()
-            Logger.log(
-                Tags.UriDebug,
-                "setupInterface onCreate savedImageUri as ${imageManager.getUri()}"
-            )
+            val croppedImageUri =
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                    savedInstanceState.getParcelable(parcelableCroppedUri, Uri::class.java)
+                } else {
+                    @Suppress("DEPRECATION")
+                    savedInstanceState.getParcelable(parcelableCroppedUri)
+                }
+
+            if (croppedImageUri == null) {
+                imageManager.updateUri(savedImageUri, false)
+                imageManager.refreshPreviewImage()
+                Logger.log(
+                    Tags.UriDebug,
+                    "setupInterface onCreate savedImageUri as ${imageManager.getOriginUri()}"
+                )
+            } else {
+                imageManager.updateUri(savedImageUri, false)
+                imageManager.updateUri(croppedImageUri, true)
+                imageManager.refreshPreviewImage()
+                Logger.log(
+                    Tags.UriDebug,
+                    "Found croppedImageUri and restored image uris ${imageManager.getOriginUri()} and cropped image uri ${imageManager.getCroppedUri()}"
+                )
+            }
         }
     }
 }

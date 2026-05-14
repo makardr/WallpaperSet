@@ -26,16 +26,23 @@ class ImageManager(
     private val tooltip: TextView
 ) {
     private var imageUri: Uri? = null
+    private var croppedImageUri: Uri? = null
     private var cropHint: Rect? = null
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     init {
+        //Check on reload if button should be enabled
         setWallpaper.isEnabled = imageUri != null
     }
 
-    fun updateUri(uri: Uri?) {
-        imageUri = uri
+    fun updateUri(uri: Uri?, cropped: Boolean) {
+        if (cropped) {
+            croppedImageUri = uri
+        } else {
+            imageUri = uri
+            croppedImageUri = null
+        }
         cropHint = uri?.let { calculateCropHint(it) }
         refreshPreviewImage()
         //Instead pass a live data variable from Main that will trigger an update function inside main
@@ -43,12 +50,22 @@ class ImageManager(
         tooltip.visibility = View.INVISIBLE
     }
 
-    fun getUri(): Uri? {
+    fun getOriginUri(): Uri? {
         return imageUri
     }
 
+    fun getCroppedUri(): Uri? {
+        return croppedImageUri
+    }
+
     fun refreshPreviewImage() {
-        imageUri?.let {
+        val currentUri: Uri? = if (croppedImageUri != null) {
+            croppedImageUri
+        } else {
+            imageUri
+        }
+
+        currentUri?.let {
             val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
                 val source = ImageDecoder.createSource(context.contentResolver, it)
                 ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
@@ -69,7 +86,13 @@ class ImageManager(
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    imageUri?.let {
+                    val currentUri: Uri? = if (croppedImageUri != null) {
+                        croppedImageUri
+                    } else {
+                        imageUri
+                    }
+
+                    currentUri?.let {
                         val wallpaperManager = WallpaperManager.getInstance(context)
 
                         context.contentResolver.openInputStream(it)?.use { stream ->
