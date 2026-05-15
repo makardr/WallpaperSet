@@ -12,6 +12,9 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import com.example.wallpaperfix.model.Tags
+import com.example.wallpaperfix.utils.Logger
+import com.example.wallpaperfix.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -32,7 +35,6 @@ class ImageManager(
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     init {
-        //Check on reload if button should be enabled
         setWallpaper.isEnabled = imageUri != null
     }
 
@@ -45,7 +47,6 @@ class ImageManager(
         }
         cropHint = uri?.let { calculateCropHint(it) }
         refreshPreviewImage()
-        //Instead pass a live data variable from Main that will trigger an update function inside main
         setWallpaper.isEnabled = true
         tooltip.visibility = View.INVISIBLE
     }
@@ -82,7 +83,7 @@ class ImageManager(
         }
     }
 
-    fun setWallpaper(which: Int) {
+    fun setWallpaper(@WallpaperFlag flag: Int) {
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
@@ -96,22 +97,22 @@ class ImageManager(
                         val wallpaperManager = WallpaperManager.getInstance(context)
 
                         context.contentResolver.openInputStream(it)?.use { stream ->
-                            wallpaperManager.setStream(stream, cropHint, true, which)
+                            wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
-                        Logger.log(Tags.SetWallpaper, "Wallpaper applied")
+                        Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
                     }
                 }
             } catch (e: IOException) {
-                Logger.log(Tags.SetWallpaper, e.toString())
+                Logger.logError(Tags.SetWallpaper, e.toString())
             }
 
         }
     }
 
     private fun calculateCropHint(uri: Uri): Rect {
-        Logger.log(Tags.DimensionCrop, "========================================")
+        Logger.logDebug(Tags.DimensionCrop, "========================================")
         val (imageWidth, imageHeight) = getImageDimensions(uri)
-        Logger.log(
+        Logger.logDebug(
             Tags.DimensionCrop,
             "screenWidth $screenWidth, screenHeight $screenHeight, imageWidth $imageWidth, imageHeight $imageHeight"
         )
@@ -120,17 +121,17 @@ class ImageManager(
             screenWidth.toFloat() / imageWidth,
             screenHeight.toFloat() / imageHeight
         )
-        Logger.log(Tags.DimensionCrop, "scale $scale")
+        Logger.logDebug(Tags.DimensionCrop, "scale $scale")
 
         val scaledWidth = imageWidth * scale
         val scaledHeight = imageHeight * scale
 
-        Logger.log(Tags.DimensionCrop, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
+        Logger.logDebug(Tags.DimensionCrop, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
 
         val offsetX = (scaledWidth - screenWidth) / 2f
         val offsetY = (scaledHeight - screenHeight) / 2f
 
-        Logger.log(Tags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
+        Logger.logDebug(Tags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
 
 
         val left = (offsetX / scale).toInt().coerceIn(0, imageWidth)

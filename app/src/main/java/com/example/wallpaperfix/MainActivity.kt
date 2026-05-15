@@ -6,6 +6,7 @@ import android.app.WallpaperManager
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import android.os.Build
 import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
@@ -24,9 +25,14 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
+import com.example.wallpaperfix.model.Tags
+import com.example.wallpaperfix.utils.Logger
+import com.example.wallpaperfix.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.yalantis.ucrop.UCrop
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.io.File
 
 
@@ -60,57 +66,72 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setupInterface(savedInstanceState)
-        imageCacheOutputUri = Uri.fromFile(File(cacheDir, wallpaperCacheFileName))
+        imageCacheOutputUri = Uri.fromFile(File(filesDir, wallpaperCacheFileName))
         if (savedInstanceState == null) {
-            Logger.log(Tags.Generic, "Handling incoming intent from fresh start")
+            Logger.logInfo(Tags.Generic, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
-        Logger.log(Tags.Generic, "App created")
+        Logger.logInfo(Tags.Generic, "onCreate")
     }
 
     override fun onDestroy() {
         super.onDestroy()
         dialog.dismiss()
+        if (isFinishing) {
+            pickMediaLauncher.unregister()
+        }
     }
 
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        //TODO: figure out what exactly am I saving here and why imageUri is hardcoded
         outState.putParcelable(parcelableUri, imageManager.getOriginUri())
         outState.putParcelable(parcelableCroppedUri, imageManager.getCroppedUri())
     }
 
-
-    //TODO: Capturing intent does not work on physical phone
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        Logger.log(Tags.NewIntent, "Handling incoming intent, app already opened")
+        Logger.logInfo(Tags.IncomingIntent, "Received image uri on newIntent: $intent")
         handleIncomingIntent(intent)
     }
 
     private fun handleIncomingIntent(intent: Intent) {
-        Logger.log(Tags.IncomingIntent, "handleIncomingIntent")
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent ${intent.action}")
+        }
         when (intent.action) {
-            Intent.ACTION_VIEW -> handleImageGeneric(intent)
-            Intent.ACTION_SEND -> handleImageGeneric(intent)
-            else -> Logger.log(Tags.IncomingIntent, "Ignoring intent ${intent.action}")
+            Intent.ACTION_SEND -> handleActionSend(intent)
+            else -> Logger.logInfo(Tags.IncomingIntent, "Ignoring intent ${intent.action}")
         }
     }
 
-    private fun handleImageGeneric(intent: Intent) {
-        val sharedUri: Uri? = intent.data
-        Logger.log(Tags.HandleImageGeneric, sharedUri.toString())
-        imageManager.updateUri(sharedUri, false)
-        imageManager.refreshPreviewImage()
-        Logger.log(Tags.UriDebug, "handleImageGeneric set uri as ${imageManager.getOriginUri()}")
+    private fun handleActionSend(intent: Intent) {
+        val sharedUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
+        } else {
+            @Suppress("DEPRECATION")
+            intent.getParcelableExtra(Intent.EXTRA_STREAM)
+        }
+
+        if (sharedUri != null) {
+            Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
+            imageManager.updateUri(sharedUri, false)
+            imageManager.refreshPreviewImage()
+            Logger.logInfo(
+                Tags.IncomingIntent,
+                "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
+            )
+        } else {
+            Logger.logError(Tags.IncomingIntent, "Shared image uri is null")
+            Logger.logError(Tags.IncomingIntent, intent.data.toString())
+            throw NullPointerException("Received image uri is null")
+        }
     }
 
     private fun launchUCropActivity(uri: Uri) {
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
-        //TODO: Play with ucrop options, possibly reduce ucrop unnecessary functionality (image size enhancer scale)
         val options = UCrop.Options().apply {
             setCompressionFormat(Bitmap.CompressFormat.JPEG)
             setCompressionQuality(100)
@@ -131,19 +152,19 @@ class MainActivity : AppCompatActivity() {
                 val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateUri(croppedUri, true)
                 imageManager.refreshPreviewImage()
-                Logger.log(
-                    Tags.UriDebug,
-                    "cropResultLauncher set imageUri as ${imageManager.getOriginUri()}"
+                Logger.logInfo(
+                    Tags.CropResult,
+                    "Crop result set imageUri as ${imageManager.getOriginUri()}"
                 )
             }
 
             RESULT_CANCELED -> {
-                Logger.log(Tags.CropResult, "User cancelled crop")
+                Logger.logInfo(Tags.CropResult, "User cancelled crop")
             }
 
             UCrop.RESULT_ERROR -> {
                 val error = UCrop.getError(result.data!!)
-                Logger.log(Tags.CropResult, "Crop error: $error")
+                Logger.logError(Tags.CropResult, error.toString())
             }
         }
     }
@@ -173,22 +194,18 @@ class MainActivity : AppCompatActivity() {
         imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper, tooltip)
 
         setWallpaperSystem.setOnClickListener {
-            imageManager.setWallpaper(WallpaperManager.FLAG_SYSTEM)
+            setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
         setWallpaperLock.setOnClickListener {
-            imageManager.setWallpaper(WallpaperManager.FLAG_LOCK)
+            setOnClickWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaperAll.setOnClickListener {
-            imageManager.setWallpaper(
-                WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK
-            )
-            Logger.log(Tags.Generic, "Set wallpaper clicked")
+            setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaper.setOnClickListener {
-            //TODO: After wallpaper is applied dialog should hide itself
             dialog.setContentView(setWallpaperLayout)
             dialog.show()
         }
@@ -229,14 +246,14 @@ class MainActivity : AppCompatActivity() {
 
         if (savedInstanceState != null) {
             val savedImageUri =
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     savedInstanceState.getParcelable(parcelableUri, Uri::class.java)
                 } else {
                     @Suppress("DEPRECATION")
                     savedInstanceState.getParcelable(parcelableUri)
                 }
             val croppedImageUri =
-                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.TIRAMISU) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     savedInstanceState.getParcelable(parcelableCroppedUri, Uri::class.java)
                 } else {
                     @Suppress("DEPRECATION")
@@ -246,7 +263,7 @@ class MainActivity : AppCompatActivity() {
             if (croppedImageUri == null) {
                 imageManager.updateUri(savedImageUri, false)
                 imageManager.refreshPreviewImage()
-                Logger.log(
+                Logger.logInfo(
                     Tags.UriDebug,
                     "setupInterface onCreate savedImageUri as ${imageManager.getOriginUri()}"
                 )
@@ -254,11 +271,28 @@ class MainActivity : AppCompatActivity() {
                 imageManager.updateUri(savedImageUri, false)
                 imageManager.updateUri(croppedImageUri, true)
                 imageManager.refreshPreviewImage()
-                Logger.log(
+                Logger.logInfo(
                     Tags.UriDebug,
                     "Found croppedImageUri and restored image uris ${imageManager.getOriginUri()} and cropped image uri ${imageManager.getCroppedUri()}"
                 )
             }
         }
+    }
+
+    private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
+        imageManager.setWallpaper(flag)
+        dialog.hide()
+        lifecycleScope.launch {
+            delay(500)
+            exitToTheMainScreen()
+        }
+    }
+
+    private fun exitToTheMainScreen() {
+        val intent = Intent(Intent.ACTION_MAIN).apply {
+            addCategory(Intent.CATEGORY_HOME)
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        startActivity(intent)
     }
 }

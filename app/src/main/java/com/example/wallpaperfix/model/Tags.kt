@@ -1,4 +1,4 @@
-package com.example.wallpaperfix
+package com.example.wallpaperfix.model
 
 enum class Tags {
     Generic,
