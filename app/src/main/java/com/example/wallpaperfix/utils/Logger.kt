@@ -1,7 +1,7 @@
 package com.example.wallpaperfix.utils
 
 import android.util.Log
-import com.example.wallpaperfix.model.Tags
+import com.example.wallpaperfix.common.Tags
 
 object Logger {
     private const val ENABLED: Boolean = true
@@ -14,7 +14,7 @@ object Logger {
     }
 
     fun logDebug(tag: Tags, message: String) {
-        if (DISABLED) {
+        if (ENABLED) {
             Log.d(tag.toString(), message)
         }
     }

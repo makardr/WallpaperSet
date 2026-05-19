@@ -25,7 +25,8 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.example.wallpaperfix.model.Tags
+import com.example.wallpaperfix.common.AppConstants
+import com.example.wallpaperfix.common.Tags
 import com.example.wallpaperfix.utils.Logger
 import com.example.wallpaperfix.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
@@ -33,13 +34,10 @@ import com.google.android.material.button.MaterialButton
 import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
-import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
     private lateinit var imageManager: ImageManager
-    private val wallpaperCacheFileName = "cropped_wallpaper_cache.jpg"
-    private lateinit var imageCacheOutputUri: Uri
     private lateinit var wallpaperPreview: ImageView
     private lateinit var setWallpaperSystem: Button
     private lateinit var setWallpaperLock: Button
@@ -50,44 +48,104 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-    private var parcelableUri = "imageUri"
-    private var parcelableCroppedUri = "croppedImageUri"
-
-    private val pickMediaLauncher = registerForActivityResult(
-        ActivityResultContracts.PickVisualMedia()
-    ) { uri: Uri? ->
-        uri?.let {
-            imageManager.updateUri(uri, false)
-            imageManager.refreshPreviewImage()
-        }
-    }
 
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setupInterface(savedInstanceState)
-        imageCacheOutputUri = Uri.fromFile(File(filesDir, wallpaperCacheFileName))
-        if (savedInstanceState == null) {
+        Logger.logDebug(Tags.Lifecycle, "onCreate")
+        setupInterface()
+
+
+        if (savedInstanceState != null) {
+            val savedImageUri =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    savedInstanceState.getParcelable(
+                        AppConstants.SAVED_INSTANCE_URI,
+                        Uri::class.java
+                    )
+                } else {
+                    @Suppress("DEPRECATION")
+                    savedInstanceState.getParcelable(AppConstants.SAVED_INSTANCE_URI)
+                }
+            val isCropped =
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                    savedInstanceState.getBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED, false)
+                } else {
+                    @Suppress("DEPRECATION")
+                    savedInstanceState.getBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED)
+                }
+            Logger.logDebug(
+                Tags.UriDebug,
+                "Restoring saved instance image uri $savedImageUri and is cropped $isCropped"
+            )
+
+            if (isCropped) {
+                imageManager.updateOriginUri(savedImageUri)
+                imageManager.updateIsCropped()
+            } else {
+                imageManager.updateOriginUri(savedImageUri)
+            }
+
+        } else {
+            Logger.logDebug(Tags.UriDebug, "savedInstanceState is null")
             Logger.logInfo(Tags.Generic, "Handling incoming intent from fresh start")
+            //TODO: figure out is there a way to handle intent in a more straightforward way
             handleIncomingIntent(intent)
         }
-        Logger.logInfo(Tags.Generic, "onCreate")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        Logger.logDebug(
+            Tags.UriDebug,
+            "Saving origin image uri ${imageManager.getOriginUri()} and is cropped ${imageManager.imageIsCropped()}"
+        )
+        outState.putParcelable(AppConstants.SAVED_INSTANCE_URI, imageManager.getOriginUri())
+        outState.putBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED, imageManager.imageIsCropped())
     }
 
     override fun onDestroy() {
         super.onDestroy()
+        Logger.logDebug(Tags.Lifecycle, "onDestroy")
         dialog.dismiss()
         if (isFinishing) {
             pickMediaLauncher.unregister()
         }
     }
 
-
-    override fun onSaveInstanceState(outState: Bundle) {
-        super.onSaveInstanceState(outState)
-        outState.putParcelable(parcelableUri, imageManager.getOriginUri())
-        outState.putParcelable(parcelableCroppedUri, imageManager.getCroppedUri())
+    override fun onStart() {
+        super.onStart()
+        Logger.logDebug(Tags.Lifecycle, "onStart")
+        // Activity becomes visible (not yet interactive)
     }
+
+    override fun onResume() {
+        super.onResume()
+        Logger.logDebug(Tags.Lifecycle, "onResume")
+        // Activity is in foreground and interactive
+        // Register listeners, start camera, resume animations
+    }
+
+    override fun onPause() {
+        super.onPause()
+        Logger.logDebug(Tags.Lifecycle, "onPause")
+        // Losing focus
+        // Unregister sensors, pause animations
+    }
+
+    override fun onStop() {
+        super.onStop()
+        Logger.logDebug(Tags.Lifecycle, "onStop")
+        // Activity fully hidden/backgrounded
+        // Save data, release heavy resources
+    }
+
+    override fun onRestart() {
+        super.onRestart()
+        Logger.logDebug(Tags.Lifecycle, "onRestart")
+        // Called after onStop() when user navigates back to activity
+    }
+
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
@@ -116,15 +174,13 @@ class MainActivity : AppCompatActivity() {
 
         if (sharedUri != null) {
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
-            imageManager.updateUri(sharedUri, false)
-            imageManager.refreshPreviewImage()
+            imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
                 Tags.IncomingIntent,
                 "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
             )
         } else {
-            Logger.logError(Tags.IncomingIntent, "Shared image uri is null")
-            Logger.logError(Tags.IncomingIntent, intent.data.toString())
+            Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
             throw NullPointerException("Received image uri is null")
         }
     }
@@ -137,7 +193,7 @@ class MainActivity : AppCompatActivity() {
             setCompressionQuality(100)
         }
 
-        UCrop.of(uri, imageCacheOutputUri)
+        UCrop.of(uri, AppConstants.imageCacheOutputUri(this))
             .withAspectRatio(screenWidth.toFloat(), screenHeight.toFloat())
             .withMaxResultSize(screenWidth, screenHeight)
             .withOptions(options)
@@ -149,9 +205,8 @@ class MainActivity : AppCompatActivity() {
     ) { result ->
         when (result.resultCode) {
             RESULT_OK -> {
-                val croppedUri = UCrop.getOutput(result.data!!)
-                imageManager.updateUri(croppedUri, true)
-                imageManager.refreshPreviewImage()
+//                val croppedUri = UCrop.getOutput(result.data!!)
+                imageManager.updateIsCropped()
                 Logger.logInfo(
                     Tags.CropResult,
                     "Crop result set imageUri as ${imageManager.getOriginUri()}"
@@ -169,8 +224,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private val pickMediaLauncher = registerForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri: Uri? ->
+        uri?.let {
+            imageManager.updateOriginUri(uri)
+        }
+    }
+
+
     @SuppressLint("InflateParams")
-    private fun setupInterface(savedInstanceState: Bundle?) {
+    private fun setupInterface() {
         setContentView(R.layout.activity_main)
         enableEdgeToEdge()
 
@@ -240,41 +304,6 @@ class MainActivity : AppCompatActivity() {
                     bottomMargin = systemBars.bottom + xmlMarginBottomRecord
                 }
                 insets
-            }
-        }
-
-
-        if (savedInstanceState != null) {
-            val savedImageUri =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getParcelable(parcelableUri, Uri::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    savedInstanceState.getParcelable(parcelableUri)
-                }
-            val croppedImageUri =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getParcelable(parcelableCroppedUri, Uri::class.java)
-                } else {
-                    @Suppress("DEPRECATION")
-                    savedInstanceState.getParcelable(parcelableCroppedUri)
-                }
-
-            if (croppedImageUri == null) {
-                imageManager.updateUri(savedImageUri, false)
-                imageManager.refreshPreviewImage()
-                Logger.logInfo(
-                    Tags.UriDebug,
-                    "setupInterface onCreate savedImageUri as ${imageManager.getOriginUri()}"
-                )
-            } else {
-                imageManager.updateUri(savedImageUri, false)
-                imageManager.updateUri(croppedImageUri, true)
-                imageManager.refreshPreviewImage()
-                Logger.logInfo(
-                    Tags.UriDebug,
-                    "Found croppedImageUri and restored image uris ${imageManager.getOriginUri()} and cropped image uri ${imageManager.getCroppedUri()}"
-                )
             }
         }
     }

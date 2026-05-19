@@ -1,4 +1,4 @@
-package com.example.wallpaperfix.model
+package com.example.wallpaperfix.common
 
 enum class Tags {
     Generic,
@@ -9,5 +9,6 @@ enum class Tags {
     HandleImageGeneric,
     SetWallpaper,
     SetupInterface,
-    DimensionCrop
+    DimensionCrop,
+    Lifecycle
 }

@@ -12,13 +12,15 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
-import com.example.wallpaperfix.model.Tags
+import com.example.wallpaperfix.common.AppConstants
+import com.example.wallpaperfix.common.Tags
 import com.example.wallpaperfix.utils.Logger
 import com.example.wallpaperfix.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.IOException
 
 class ImageManager(
@@ -29,24 +31,30 @@ class ImageManager(
     private val tooltip: TextView
 ) {
     private var imageUri: Uri? = null
-    private var croppedImageUri: Uri? = null
-    private var cropHint: Rect? = null
+    private var croppedImageUri: Uri
+    private var imageIsCropped: Boolean = false
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     init {
         setWallpaper.isEnabled = imageUri != null
+        croppedImageUri = AppConstants.imageCacheOutputUri(context)
     }
 
-    fun updateUri(uri: Uri?, cropped: Boolean) {
-        if (cropped) {
-            croppedImageUri = uri
-        } else {
-            imageUri = uri
-            croppedImageUri = null
-        }
-        cropHint = uri?.let { calculateCropHint(it) }
-        refreshPreviewImage()
+    fun updateOriginUri(uri: Uri?) {
+        imageUri = uri
+        imageIsCropped = false
+
+        imageUri?.let { refreshPreviewImage(it) }
+
+        setWallpaper.isEnabled = true
+        tooltip.visibility = View.INVISIBLE
+    }
+
+    fun updateIsCropped() {
+        imageIsCropped = true
+        refreshPreviewImage(croppedImageUri)
+
         setWallpaper.isEnabled = true
         tooltip.visibility = View.INVISIBLE
     }
@@ -55,31 +63,42 @@ class ImageManager(
         return imageUri
     }
 
-    fun getCroppedUri(): Uri? {
-        return croppedImageUri
+    fun imageIsCropped(): Boolean {
+        return imageIsCropped
     }
 
-    fun refreshPreviewImage() {
-        val currentUri: Uri? = if (croppedImageUri != null) {
-            croppedImageUri
-        } else {
-            imageUri
+    private fun refreshPreviewImage(imageUri: Uri) {
+        if (!imageUri.exists(context)) {
+            throw NullPointerException("Uri $imageUri does not exist")
         }
 
-        currentUri?.let {
-            val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-                val source = ImageDecoder.createSource(context.contentResolver, it)
-                ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                    decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
-                }
-            } else {
-                @Suppress("DEPRECATION")
-                MediaStore.Images.Media.getBitmap(context.contentResolver, it)
+
+        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
+            val source = ImageDecoder.createSource(context.contentResolver, imageUri)
+            ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
+                decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
+            }
+        } else {
+            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
+                context.contentResolver,
+                imageUri
+            )
+        }
+
+        imagePreview.setImageURI(null)
+        imagePreview.setImageBitmap(bitmap)
+    }
+
+    private fun Uri.exists(context: Context): Boolean {
+        return when (scheme) {
+            "file" -> path?.let { File(it).exists() } ?: false
+            "content" -> try {
+                context.contentResolver.openInputStream(this)?.use { true } ?: false
+            } catch (e: Exception) {
+                false
             }
 
-
-            imagePreview.setImageURI(null)
-            imagePreview.setImageBitmap(bitmap)
+            else -> false
         }
     }
 
@@ -87,10 +106,10 @@ class ImageManager(
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val currentUri: Uri? = if (croppedImageUri != null) {
-                        croppedImageUri
+                    val (currentUri, cropHint) = if (imageIsCropped) {
+                        croppedImageUri to calculateCropHint(croppedImageUri)
                     } else {
-                        imageUri
+                        imageUri to imageUri?.let { calculateCropHint(it) }
                     }
 
                     currentUri?.let {
@@ -118,8 +137,7 @@ class ImageManager(
         )
 
         val scale = maxOf(
-            screenWidth.toFloat() / imageWidth,
-            screenHeight.toFloat() / imageHeight
+            screenWidth.toFloat() / imageWidth, screenHeight.toFloat() / imageHeight
         )
         Logger.logDebug(Tags.DimensionCrop, "scale $scale")
 
