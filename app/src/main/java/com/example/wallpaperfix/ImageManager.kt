@@ -3,21 +3,20 @@ package com.example.wallpaperfix
 import android.app.WallpaperManager
 import android.content.Context
 import android.graphics.BitmapFactory
-import android.graphics.ImageDecoder
 import android.graphics.Rect
 import android.net.Uri
-import android.os.Build
-import android.provider.MediaStore
 import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import coil.load
 import com.example.wallpaperfix.common.AppConstants
 import com.example.wallpaperfix.common.Tags
 import com.example.wallpaperfix.utils.Logger
 import com.example.wallpaperfix.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -88,26 +87,31 @@ class ImageManager(
         return imageIsCropped
     }
 
-    private fun refreshPreviewImage(imageUri: Uri) {
-        if (!imageUri.exists(context)) {
-            throw NullPointerException("Uri $imageUri does not exist")
-        }
-
-
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            val source = ImageDecoder.createSource(context.contentResolver, imageUri)
-            ImageDecoder.decodeBitmap(source) { decoder, _, _ ->
-                decoder.allocator = ImageDecoder.ALLOCATOR_HARDWARE
+    private fun refreshPreviewImage(uri: Uri) {
+        scope.launch {
+            val exist = withContext(Dispatchers.IO) { waitForUri(uri) }
+            if (!exist) {
+                Logger.logError(Tags.UriDebug, "File does not exist, resetting uri: $uri")
+                disableInterface()
+                imageIsCropped = false
+                imageUri = null
+            } else {
+                imagePreview.load(uri) {
+                    crossfade(true)
+                }
             }
-        } else {
-            @Suppress("DEPRECATION") MediaStore.Images.Media.getBitmap(
-                context.contentResolver,
-                imageUri
-            )
         }
+    }
 
-        imagePreview.setImageURI(null)
-        imagePreview.setImageBitmap(bitmap)
+    private suspend fun waitForUri(uri: Uri, retries: Int = 5, delayMs: Long = 1000): Boolean {
+        var attempt = 1
+        repeat(retries) {
+            Logger.logInfo(Tags.UriDebug, "Waiting for uri attempt: $attempt")
+            if (uri.exists(context)) return true
+            delay(delayMs)
+            attempt++
+        }
+        return false
     }
 
     private fun Uri.exists(context: Context): Boolean {
@@ -145,7 +149,6 @@ class ImageManager(
             } catch (e: IOException) {
                 Logger.logError(Tags.SetWallpaper, e.toString())
             }
-
         }
     }
 

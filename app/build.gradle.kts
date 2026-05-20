@@ -50,4 +50,5 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     implementation(libs.ucrop)
     implementation(libs.exitinterface)
+    implementation(libs.coil)
 }
