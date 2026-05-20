@@ -5,6 +5,6 @@
     <item android:color="@color/button_disabled" android:state_enabled="false" />
 
     <!-- Enabled -->
-    <item android:color="@color/text_color" />
+    <item android:color="@color/apply_wallpaper_text_color" />
 
 </selector>

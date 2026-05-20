@@ -3,6 +3,7 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     <color name="text_color">#FFFFFFFF</color>
+    <color name="apply_wallpaper_text_color">#FFFFFFFF</color>
     <color name="dark_gray_transparent">#80000000</color>
     <color name="button_disabled">#994D4D4D</color>
     <color name="ripple_color">#1FFFFFFF</color>

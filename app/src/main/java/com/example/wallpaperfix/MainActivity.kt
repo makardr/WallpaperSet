@@ -88,8 +88,7 @@ class MainActivity : AppCompatActivity() {
 
         } else {
             Logger.logDebug(Tags.UriDebug, "savedInstanceState is null")
-            Logger.logInfo(Tags.Generic, "Handling incoming intent from fresh start")
-            //TODO: figure out is there a way to handle intent in a more straightforward way
+            Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
     }
@@ -155,9 +154,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleIncomingIntent(intent: Intent) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent ${intent.action}")
-        }
+        Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent ${intent.action}")
         when (intent.action) {
             Intent.ACTION_SEND -> handleActionSend(intent)
             else -> Logger.logInfo(Tags.IncomingIntent, "Ignoring intent ${intent.action}")
@@ -258,14 +255,17 @@ class MainActivity : AppCompatActivity() {
         imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper, tooltip)
 
         setWallpaperSystem.setOnClickListener {
+            Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
         setWallpaperLock.setOnClickListener {
+            Logger.logInfo(Tags.SetWallpaper, "setWallpaperLock button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaperAll.setOnClickListener {
+            Logger.logInfo(Tags.SetWallpaper, "setWallpaperAll button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
         }
 
@@ -312,7 +312,9 @@ class MainActivity : AppCompatActivity() {
         imageManager.setWallpaper(flag)
         dialog.hide()
         lifecycleScope.launch {
+            Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
             delay(500)
+            Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
         }
     }

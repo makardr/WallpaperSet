@@ -37,26 +37,47 @@ class ImageManager(
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     init {
-        setWallpaper.isEnabled = imageUri != null
+        Logger.logInfo(
+            Tags.Lifecycle,
+            "ImageManager init, ${imageUri ?: "uri = null"}, imageIsCropped $imageIsCropped"
+        )
+        if (imageUri != null) {
+            enableInterface()
+        } else {
+            disableInterface()
+        }
         croppedImageUri = AppConstants.imageCacheOutputUri(context)
     }
 
     fun updateOriginUri(uri: Uri?) {
+        Logger.logInfo(Tags.UriDebug, "Uri updated: ${imageUri ?: "uri = null"}")
         imageUri = uri
         imageIsCropped = false
 
-        imageUri?.let { refreshPreviewImage(it) }
+        imageUri?.let {
+            refreshPreviewImage(it)
+            enableInterface()
+        }
+    }
 
+    fun updateIsCropped() {
+        Logger.logInfo(Tags.UriDebug, "imageIsCropped updated")
+        imageIsCropped = true
+        refreshPreviewImage(croppedImageUri)
+
+        enableInterface()
+    }
+
+    fun enableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface enabled")
         setWallpaper.isEnabled = true
         tooltip.visibility = View.INVISIBLE
     }
 
-    fun updateIsCropped() {
-        imageIsCropped = true
-        refreshPreviewImage(croppedImageUri)
-
-        setWallpaper.isEnabled = true
-        tooltip.visibility = View.INVISIBLE
+    fun disableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface disabled")
+        setWallpaper.isEnabled = false
+        tooltip.visibility = View.VISIBLE
     }
 
     fun getOriginUri(): Uri? {
