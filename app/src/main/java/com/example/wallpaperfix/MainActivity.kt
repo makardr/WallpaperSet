@@ -202,7 +202,7 @@ class MainActivity : AppCompatActivity() {
     ) { result ->
         when (result.resultCode) {
             RESULT_OK -> {
-//                val croppedUri = UCrop.getOutput(result.data!!)
+                //val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateIsCropped()
                 Logger.logInfo(
                     Tags.CropResult,

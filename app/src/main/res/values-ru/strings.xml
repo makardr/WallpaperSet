@@ -5,7 +5,7 @@
     <string name="open_image_explorer_description">Открыть проводник изображений</string>
     <string name="tooltip_content">Чтобы выбрать изображение для обоев используйте кнопку в верхнем левом углу или поделитесь изображением с этим приложением.</string>
     <string name="set_wallpaper_button">Установить обои</string>
-    <string name="set_wallpaper_home_option">Главный экран</string>
+    <string name="set_wallpaper_home_option">Рабочий стол</string>
     <string name="set_wallpaper_lockscreen_option">Экран блокировки</string>
-    <string name="set_wallpaper_both_option">Главный экран и экран блокировки</string>
+    <string name="set_wallpaper_both_option">Рабочий стол и экран блокировки</string>
 </resources>
