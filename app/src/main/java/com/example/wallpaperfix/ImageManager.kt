@@ -16,10 +16,10 @@ import com.example.wallpaperfix.utils.Logger
 import com.example.wallpaperfix.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.File
+import java.io.FileNotFoundException
 import java.io.IOException
 
 class ImageManager(
@@ -36,7 +36,7 @@ class ImageManager(
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
     init {
-        Logger.logInfo(
+        Logger.logDebug(
             Tags.Lifecycle,
             "ImageManager init, ${imageUri ?: "uri = null"}, imageIsCropped $imageIsCropped"
         )
@@ -49,7 +49,7 @@ class ImageManager(
     }
 
     fun updateOriginUri(uri: Uri?) {
-        Logger.logInfo(Tags.UriDebug, "Uri updated: ${imageUri ?: "uri = null"}")
+        Logger.logInfo(Tags.Uri, "Uri updated: $imageUri")
         imageUri = uri
         imageIsCropped = false
 
@@ -60,11 +60,17 @@ class ImageManager(
     }
 
     fun updateIsCropped() {
-        Logger.logInfo(Tags.UriDebug, "imageIsCropped updated")
+        Logger.logInfo(Tags.Uri, "imageIsCropped updated")
         imageIsCropped = true
         refreshPreviewImage(croppedImageUri)
 
         enableInterface()
+    }
+
+    fun resetCrop() {
+        Logger.logInfo(Tags.Uri, "Reset image crop")
+        imageIsCropped = false
+        imageUri?.let { refreshPreviewImage(it) }
     }
 
     fun enableInterface() {
@@ -89,9 +95,8 @@ class ImageManager(
 
     private fun refreshPreviewImage(uri: Uri) {
         scope.launch {
-            val exist = withContext(Dispatchers.IO) { waitForUri(uri) }
-            if (!exist) {
-                Logger.logError(Tags.UriDebug, "File does not exist, resetting uri: $uri")
+            if (!uri.available(context)) {
+                Logger.logError(Tags.Uri, "File does not exist, resetting uri: $uri")
                 disableInterface()
                 imageIsCropped = false
                 imageUri = null
@@ -103,27 +108,61 @@ class ImageManager(
         }
     }
 
-    private suspend fun waitForUri(uri: Uri, retries: Int = 5, delayMs: Long = 1000): Boolean {
-        var attempt = 1
-        repeat(retries) {
-            Logger.logInfo(Tags.UriDebug, "Waiting for uri attempt: $attempt")
-            if (uri.exists(context)) return true
-            delay(delayMs)
-            attempt++
-        }
-        return false
-    }
-
-    private fun Uri.exists(context: Context): Boolean {
+    private fun Uri.available(context: Context): Boolean {
         return when (scheme) {
-            "file" -> path?.let { File(it).exists() } ?: false
-            "content" -> try {
-                context.contentResolver.openInputStream(this)?.use { true } ?: false
-            } catch (e: Exception) {
-                false
+            "file" -> {
+                val file = path?.let { File(it) }
+                when {
+                    file == null -> {
+                        Logger.logError(Tags.Uri, "File URI has null path: $this")
+                        false
+                    }
+                    !file.exists() -> {
+                        Logger.logError(Tags.Uri, "File does not exist: ${file.absolutePath}")
+                        false
+                    }
+                    !file.canRead() -> {
+                        Logger.logError(Tags.Uri, "File exists but is not readable (permissions?): ${file.absolutePath}")
+                        false
+                    }
+                    file.length() == 0L -> {
+                        Logger.logError(Tags.Uri, "File exists and is readable but is empty: ${file.absolutePath}")
+                        false
+                    }
+                    else -> true
+                }
             }
 
-            else -> false
+            "content" -> {
+                try {
+                    context.contentResolver.openInputStream(this)?.use {
+                        val hasBytes = it.read() != -1
+                        if (!hasBytes) Logger.logError(Tags.Uri, "Content URI opened successfully but stream is empty: $this")
+                        hasBytes
+                    } ?: run {
+                        Logger.logError(Tags.Uri, "ContentResolver.openInputStream returned null for: $this")
+                        false
+                    }
+                } catch (e: SecurityException) {
+                    Logger.logError(Tags.Uri, "Permission denied for URI: $this — grant may have expired or was never acquired. ${e.message}")
+                    false
+                } catch (e: FileNotFoundException) {
+                    Logger.logError(Tags.Uri, "File not found via content provider: $this — provider registered but file missing. ${e.message}")
+                    false
+                } catch (e: Exception) {
+                    Logger.logError(Tags.Uri, "Unexpected error reading URI: $this — ${e.javaClass.simpleName}: ${e.message}")
+                    false
+                }
+            }
+
+            null -> {
+                Logger.logError(Tags.Uri, "URI has null scheme: $this")
+                false
+            }
+            else -> {
+                Logger.logError(Tags.Uri, "Unsupported URI scheme '${scheme}': $this")
+                false
+            }
         }
     }
 

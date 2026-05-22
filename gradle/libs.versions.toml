@@ -9,7 +9,7 @@ appcompat = "1.7.1"
 material = "1.14.0"
 activityKtx = "1.13.0"
 constraintlayout = "2.2.1"
-ucrop = "2.2.11-native"
+ucrop = "2.2.11"
 exitinterface = "1.4.2"
 
 [libraries]

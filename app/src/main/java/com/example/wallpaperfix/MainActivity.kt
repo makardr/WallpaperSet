@@ -49,7 +49,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logDebug(Tags.Lifecycle, "onCreate")
@@ -75,7 +74,7 @@ class MainActivity : AppCompatActivity() {
                     savedInstanceState.getBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED)
                 }
             Logger.logDebug(
-                Tags.UriDebug,
+                Tags.Uri,
                 "Restoring saved instance image uri $savedImageUri and is cropped $isCropped"
             )
 
@@ -87,7 +86,7 @@ class MainActivity : AppCompatActivity() {
             }
 
         } else {
-            Logger.logDebug(Tags.UriDebug, "savedInstanceState is null")
+            Logger.logDebug(Tags.Uri, "savedInstanceState is null")
             Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
@@ -96,7 +95,7 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Logger.logDebug(
-            Tags.UriDebug,
+            Tags.Uri,
             "Saving origin image uri ${imageManager.getOriginUri()} and is cropped ${imageManager.imageIsCropped()}"
         )
         outState.putParcelable(AppConstants.SAVED_INSTANCE_URI, imageManager.getOriginUri())
@@ -170,6 +169,15 @@ class MainActivity : AppCompatActivity() {
         }
 
         if (sharedUri != null) {
+            try {
+                contentResolver.takePersistableUriPermission(
+                    sharedUri,
+                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                )
+                Logger.logInfo(Tags.IncomingIntent, "Success granting FLAG_GRANT_READ_URI_PERMISSION")
+            } catch (e: SecurityException) {
+                Logger.logWarning(Tags.IncomingIntent, e.toString())
+            }
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
@@ -212,6 +220,7 @@ class MainActivity : AppCompatActivity() {
 
             RESULT_CANCELED -> {
                 Logger.logInfo(Tags.CropResult, "User cancelled crop")
+                imageManager.resetCrop()
             }
 
             UCrop.RESULT_ERROR -> {
