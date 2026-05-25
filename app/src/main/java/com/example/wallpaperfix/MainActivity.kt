@@ -194,13 +194,11 @@ class MainActivity : AppCompatActivity() {
         val screenWidth = resources.displayMetrics.widthPixels
         val screenHeight = resources.displayMetrics.heightPixels
         val options = UCrop.Options().apply {
-            setCompressionFormat(Bitmap.CompressFormat.JPEG)
-            setCompressionQuality(100)
+            setCompressionFormat(Bitmap.CompressFormat.PNG)
         }
 
         UCrop.of(uri, AppConstants.imageCacheOutputUri(this))
             .withAspectRatio(screenWidth.toFloat(), screenHeight.toFloat())
-            .withMaxResultSize(screenWidth, screenHeight)
             .withOptions(options)
             .start(this, cropResultLauncher)
     }
