@@ -3,7 +3,7 @@ plugins {
 }
 
 android {
-    namespace = "com.example.wallpaperfix"
+    namespace = "com.makardr.wallpaperset"
     compileSdk {
         version = release(36) {
             minorApiLevel = 1
@@ -11,7 +11,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.wallpaperset"
+        applicationId = "com.makardr.wallpaperset"
         minSdk = 24
         targetSdk = 36
         versionCode = 1
@@ -49,6 +49,6 @@ dependencies {
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(libs.androidx.junit)
     implementation(libs.ucrop)
-    implementation(libs.exitinterface)
+    implementation(libs.exifinterface)
     implementation(libs.coil)
 }

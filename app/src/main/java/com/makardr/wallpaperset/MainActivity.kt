@@ -1,4 +1,4 @@
-package com.example.wallpaperfix
+package com.makardr.wallpaperset
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -25,10 +25,10 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.example.wallpaperfix.common.AppConstants
-import com.example.wallpaperfix.common.Tags
-import com.example.wallpaperfix.utils.Logger
-import com.example.wallpaperfix.utils.WallpaperFlag
+import com.makardr.wallpaperset.common.AppConstants
+import com.makardr.wallpaperset.common.Tags
+import com.makardr.wallpaperset.utils.Logger
+import com.makardr.wallpaperset.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.yalantis.ucrop.UCrop

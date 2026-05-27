@@ -1,4 +1,4 @@
-package com.example.wallpaperfix.utils
+package com.makardr.wallpaperset.utils
 
 import android.app.WallpaperManager
 import androidx.annotation.IntDef

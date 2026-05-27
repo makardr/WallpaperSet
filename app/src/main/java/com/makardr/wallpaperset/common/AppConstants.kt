@@ -1,4 +1,4 @@
-package com.example.wallpaperfix.common
+package com.makardr.wallpaperset.common
 
 import android.content.Context
 import android.net.Uri

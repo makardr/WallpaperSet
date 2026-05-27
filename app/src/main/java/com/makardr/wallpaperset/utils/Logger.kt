@@ -1,7 +1,7 @@
-package com.example.wallpaperfix.utils
+package com.makardr.wallpaperset.utils
 
 import android.util.Log
-import com.example.wallpaperfix.common.Tags
+import com.makardr.wallpaperset.common.Tags
 
 object Logger {
     private const val ENABLED: Boolean = true

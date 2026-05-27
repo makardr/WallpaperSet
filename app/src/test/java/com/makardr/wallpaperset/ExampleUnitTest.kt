@@ -1,4 +1,4 @@
-package com.example.wallpaperfix
+package com.makardr.wallpaperset
 
 import org.junit.Test
 

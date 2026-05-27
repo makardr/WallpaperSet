@@ -1,4 +1,4 @@
-package com.example.wallpaperfix.common
+package com.makardr.wallpaperset.common
 
 enum class Tags {
     Generic,

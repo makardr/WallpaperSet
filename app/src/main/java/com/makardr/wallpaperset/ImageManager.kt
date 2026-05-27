@@ -1,4 +1,4 @@
-package com.example.wallpaperfix
+package com.makardr.wallpaperset
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -10,10 +10,10 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import coil.load
-import com.example.wallpaperfix.common.AppConstants
-import com.example.wallpaperfix.common.Tags
-import com.example.wallpaperfix.utils.Logger
-import com.example.wallpaperfix.utils.WallpaperFlag
+import com.makardr.wallpaperset.common.AppConstants
+import com.makardr.wallpaperset.common.Tags
+import com.makardr.wallpaperset.utils.Logger
+import com.makardr.wallpaperset.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

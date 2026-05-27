@@ -23,7 +23,7 @@ material = { group = "com.google.android.material", name = "material", version.r
 androidx-activity-ktx = { group = "androidx.activity", name = "activity-ktx", version.ref = "activityKtx" }
 androidx-constraintlayout = { group = "androidx.constraintlayout", name = "constraintlayout", version.ref = "constraintlayout" }
 ucrop = { module = "com.github.yalantis:ucrop", version.ref = "ucrop" }
-exitinterface = {module = "androidx.exifinterface:exifinterface", version.ref = "exitinterface"}
+exifinterface = {module = "androidx.exifinterface:exifinterface", version.ref = "exitinterface"}
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }
