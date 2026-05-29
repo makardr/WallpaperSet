@@ -1,7 +1,7 @@
-package com.makardr.wallpaperset.utils
+package com.makardr.wallpapercrop.utils
 
 import android.util.Log
-import com.makardr.wallpaperset.common.Tags
+import com.makardr.wallpapercrop.common.Tags
 
 object Logger {
     private const val ENABLED: Boolean = true

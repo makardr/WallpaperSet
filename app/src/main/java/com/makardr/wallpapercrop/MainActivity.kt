@@ -1,4 +1,4 @@
-package com.makardr.wallpaperset
+package com.makardr.wallpapercrop
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -25,10 +25,10 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.makardr.wallpaperset.common.AppConstants
-import com.makardr.wallpaperset.common.Tags
-import com.makardr.wallpaperset.utils.Logger
-import com.makardr.wallpaperset.utils.WallpaperFlag
+import com.makardr.wallpapercrop.common.AppConstants
+import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.utils.Logger
+import com.makardr.wallpapercrop.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.yalantis.ucrop.UCrop
@@ -48,6 +48,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
+    //TODO: New branch feature: applied wallpaper gallery
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -55,6 +56,7 @@ class MainActivity : AppCompatActivity() {
         setupInterface()
 
 
+        //TODO: Saved data manager
         if (savedInstanceState != null) {
             val savedImageUri =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {

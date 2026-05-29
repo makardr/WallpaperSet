@@ -1,4 +1,4 @@
-package com.makardr.wallpaperset
+package com.makardr.wallpapercrop
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -10,10 +10,10 @@ import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
 import coil.load
-import com.makardr.wallpaperset.common.AppConstants
-import com.makardr.wallpaperset.common.Tags
-import com.makardr.wallpaperset.utils.Logger
-import com.makardr.wallpaperset.utils.WallpaperFlag
+import com.makardr.wallpapercrop.common.AppConstants
+import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.utils.Logger
+import com.makardr.wallpapercrop.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -167,6 +167,7 @@ class ImageManager(
     }
 
     fun setWallpaper(@WallpaperFlag flag: Int) {
+        //TODO: Write a toast "Wallpaper applied!"
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {

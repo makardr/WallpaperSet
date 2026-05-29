@@ -1,4 +1,4 @@
-package com.makardr.wallpaperset.common
+package com.makardr.wallpapercrop.common
 
 import android.content.Context
 import android.net.Uri

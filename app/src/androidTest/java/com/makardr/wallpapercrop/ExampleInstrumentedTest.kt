@@ -1,4 +1,4 @@
-package com.makardr.wallpaperset
+package com.makardr.wallpapercrop
 
 import androidx.test.platform.app.InstrumentationRegistry
 import androidx.test.ext.junit.runners.AndroidJUnit4

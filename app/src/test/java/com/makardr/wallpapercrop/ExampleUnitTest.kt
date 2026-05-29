@@ -1,4 +1,4 @@
-package com.makardr.wallpaperset
+package com.makardr.wallpapercrop
 
 import org.junit.Test
 
