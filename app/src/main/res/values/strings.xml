@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Set wallpaper</string>
+    <string name="app_name">Wallpaper crop</string>
     <string name="wallpaper_preview_description">Wallpaper preview</string>
     <string name="crop_selected_image_description">Crop image</string>
     <string name="open_image_explorer_description">Open image explorer</string>

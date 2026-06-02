@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Установить обои</string>
+    <string name="app_name">Обрезать обои</string>
     <string name="wallpaper_preview_description">Предпросмотр обоев</string>
     <string name="crop_selected_image_description">Обрезать выбранное изображение</string>
     <string name="open_image_explorer_description">Открыть проводник изображений</string>
