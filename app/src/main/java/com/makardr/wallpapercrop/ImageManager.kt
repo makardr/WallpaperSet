@@ -49,7 +49,7 @@ class ImageManager(
     }
 
     fun updateOriginUri(uri: Uri?) {
-        Logger.logInfo(Tags.Uri, "Uri updated: $imageUri")
+        Logger.logInfo(Tags.Uri, "Uri updated: $uri")
         imageUri = uri
         imageIsCropped = false
 
