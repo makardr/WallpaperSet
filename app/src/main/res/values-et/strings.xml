@@ -8,4 +8,5 @@
     <string name="set_wallpaper_home_option">Avakuva</string>
     <string name="set_wallpaper_lockscreen_option">Lukustuskuva</string>
     <string name="set_wallpaper_both_option">Avakuva ja lukustuskuva</string>
+    <string name="toast_notification">Taustapilt rakendatud!</string>
 </resources>

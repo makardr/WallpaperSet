@@ -8,4 +8,5 @@
     <string name="set_wallpaper_home_option">Home screen</string>
     <string name="set_wallpaper_lockscreen_option">Lock screen</string>
     <string name="set_wallpaper_both_option">Home and lock screen</string>
+    <string name="toast_notification">Wallpaper applied!</string>
 </resources>
