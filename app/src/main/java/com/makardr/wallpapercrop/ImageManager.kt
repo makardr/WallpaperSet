@@ -188,7 +188,7 @@ class ImageManager(
                         withContext(Dispatchers.Main) {
                             android.widget.Toast.makeText(
                                 context,
-                                "Wallpaper applied!",
+                                context.getString(R.string.toast_notification),
                                 android.widget.Toast.LENGTH_SHORT
                             ).show()
                         }

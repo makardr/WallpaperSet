@@ -8,4 +8,5 @@
     <string name="set_wallpaper_home_option">Рабочий стол</string>
     <string name="set_wallpaper_lockscreen_option">Экран блокировки</string>
     <string name="set_wallpaper_both_option">Рабочий стол и экран блокировки</string>
+    <string name="toast_notification">Обои применены!</string>
 </resources>
