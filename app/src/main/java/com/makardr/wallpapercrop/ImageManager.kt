@@ -184,6 +184,14 @@ class ImageManager(
                             wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
                         Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
+
+                        withContext(Dispatchers.Main) {
+                            android.widget.Toast.makeText(
+                                context,
+                                "Wallpaper applied!",
+                                android.widget.Toast.LENGTH_SHORT
+                            ).show()
+                        }
                     }
                 }
             } catch (e: IOException) {
