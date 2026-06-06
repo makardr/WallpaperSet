@@ -167,7 +167,6 @@ class ImageManager(
     }
 
     fun setWallpaper(@WallpaperFlag flag: Int) {
-        //TODO: Write a toast "Wallpaper applied!"
         scope.launch {
             try {
                 withContext(Dispatchers.IO) {

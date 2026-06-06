@@ -4,7 +4,6 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.app.WallpaperManager
 import android.content.Intent
-import android.graphics.Bitmap
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -17,7 +16,6 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -25,15 +23,14 @@ import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
-import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.utils.Logger
 import com.makardr.wallpapercrop.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.yalantis.ucrop.UCrop
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlin.time.Duration.Companion.milliseconds
 
 
 class MainActivity : AppCompatActivity() {
@@ -48,60 +45,26 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-    //TODO: New branch feature: applied wallpaper gallery
+    private lateinit var saveStateManager: SaveStateManager
+    private lateinit var uCropManager: UCropManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logDebug(Tags.Lifecycle, "onCreate")
         setupInterface()
+        saveStateManager = SaveStateManager(imageManager)
+        uCropManager = UCropManager(this, imageManager)
 
-
-        //TODO: Saved data manager
         if (savedInstanceState != null) {
-            val savedImageUri =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getParcelable(
-                        AppConstants.SAVED_INSTANCE_URI,
-                        Uri::class.java
-                    )
-                } else {
-                    @Suppress("DEPRECATION")
-                    savedInstanceState.getParcelable(AppConstants.SAVED_INSTANCE_URI)
-                }
-            val isCropped =
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                    savedInstanceState.getBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED, false)
-                } else {
-                    @Suppress("DEPRECATION")
-                    savedInstanceState.getBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED)
-                }
-            Logger.logDebug(
-                Tags.Uri,
-                "Restoring saved instance image uri $savedImageUri and is cropped $isCropped"
-            )
-
-            if (isCropped) {
-                imageManager.updateOriginUri(savedImageUri)
-                imageManager.updateIsCropped()
-            } else {
-                imageManager.updateOriginUri(savedImageUri)
-            }
-
+            saveStateManager.loadState(savedInstanceState)
         } else {
-            Logger.logDebug(Tags.Uri, "savedInstanceState is null")
-            Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent from fresh start")
             handleIncomingIntent(intent)
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        Logger.logDebug(
-            Tags.Uri,
-            "Saving origin image uri ${imageManager.getOriginUri()} and is cropped ${imageManager.imageIsCropped()}"
-        )
-        outState.putParcelable(AppConstants.SAVED_INSTANCE_URI, imageManager.getOriginUri())
-        outState.putBoolean(AppConstants.SAVED_INSTANCE_IS_CROPPED, imageManager.imageIsCropped())
+        saveStateManager.saveState(outState)
     }
 
     override fun onDestroy() {
@@ -176,7 +139,10 @@ class MainActivity : AppCompatActivity() {
                     sharedUri,
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
-                Logger.logInfo(Tags.IncomingIntent, "Success granting FLAG_GRANT_READ_URI_PERMISSION")
+                Logger.logInfo(
+                    Tags.IncomingIntent,
+                    "Success granting FLAG_GRANT_READ_URI_PERMISSION"
+                )
             } catch (e: SecurityException) {
                 Logger.logWarning(Tags.IncomingIntent, e.toString())
             }
@@ -189,44 +155,6 @@ class MainActivity : AppCompatActivity() {
         } else {
             Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
             throw NullPointerException("Received image uri is null")
-        }
-    }
-
-    private fun launchUCropActivity(uri: Uri) {
-        val screenWidth = resources.displayMetrics.widthPixels
-        val screenHeight = resources.displayMetrics.heightPixels
-        val options = UCrop.Options().apply {
-            setCompressionFormat(Bitmap.CompressFormat.PNG)
-        }
-
-        UCrop.of(uri, AppConstants.imageCacheOutputUri(this))
-            .withAspectRatio(screenWidth.toFloat(), screenHeight.toFloat())
-            .withOptions(options)
-            .start(this, cropResultLauncher)
-    }
-
-    private val cropResultLauncher = registerForActivityResult(
-        StartActivityForResult()
-    ) { result ->
-        when (result.resultCode) {
-            RESULT_OK -> {
-                //val croppedUri = UCrop.getOutput(result.data!!)
-                imageManager.updateIsCropped()
-                Logger.logInfo(
-                    Tags.CropResult,
-                    "Crop result set imageUri as ${imageManager.getOriginUri()}"
-                )
-            }
-
-            RESULT_CANCELED -> {
-                Logger.logInfo(Tags.CropResult, "User cancelled crop")
-                imageManager.resetCrop()
-            }
-
-            UCrop.RESULT_ERROR -> {
-                val error = UCrop.getError(result.data!!)
-                Logger.logError(Tags.CropResult, error.toString())
-            }
         }
     }
 
@@ -285,7 +213,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton.setOnClickListener {
             imageManager.getOriginUri()?.let {
-                launchUCropActivity(it)
+                uCropManager.launchUCropActivity(it)
             }
         }
 
@@ -322,7 +250,7 @@ class MainActivity : AppCompatActivity() {
         dialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
-            delay(500)
+            delay(500.milliseconds)
             Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
         }
