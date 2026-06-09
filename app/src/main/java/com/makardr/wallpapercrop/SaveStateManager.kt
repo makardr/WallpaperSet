@@ -7,8 +7,8 @@ import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.utils.Logger
 
 class SaveStateManager(private val imageManager: ImageManager) {
-    val saveInstanceUri = "parcelableUri"
-    val savedInstanceIsCropped = "imageCropped"
+    private val saveInstanceUri = "parcelableUri"
+    private val savedInstanceIsCropped = "imageCropped"
 
     fun saveState(outState: Bundle) {
         Logger.logDebug(

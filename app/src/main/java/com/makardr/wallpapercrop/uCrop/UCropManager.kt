@@ -10,6 +10,7 @@ import com.makardr.wallpapercrop.ImageManager
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.utils.Logger
+import com.makardr.wallpapercrop.utils.isTablet
 import com.yalantis.ucrop.UCrop
 
 class UCropManager(
@@ -20,7 +21,12 @@ class UCropManager(
 
     fun launchUCropActivity(uri: Uri) {
         val screenWidth = context.resources.displayMetrics.widthPixels
-        val screenHeight = context.resources.displayMetrics.heightPixels
+        val screenHeight: Int = if (!context.isTablet()){
+            context.resources.displayMetrics.heightPixels
+        } else {
+            context.resources.displayMetrics.widthPixels
+        }
+
         val options = UCrop.Options().apply {
             setCompressionFormat(Bitmap.CompressFormat.PNG)
         }
