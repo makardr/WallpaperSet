@@ -4,6 +4,7 @@ import android.annotation.SuppressLint
 import android.app.Dialog
 import android.app.WallpaperManager
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -28,6 +29,8 @@ import com.makardr.wallpapercrop.utils.Logger
 import com.makardr.wallpapercrop.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
+import com.makardr.wallpapercrop.uCrop.UCropManager
+import com.makardr.wallpapercrop.utils.isTablet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -51,6 +54,9 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logDebug(Tags.Lifecycle, "onCreate")
+        if (!isTablet()) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         setupInterface()
         saveStateManager = SaveStateManager(imageManager)
         uCropManager = UCropManager(this, imageManager)
@@ -129,19 +135,16 @@ class MainActivity : AppCompatActivity() {
         val sharedUri: Uri? = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
         } else {
-            @Suppress("DEPRECATION")
-            intent.getParcelableExtra(Intent.EXTRA_STREAM)
+            @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
         }
 
         if (sharedUri != null) {
             try {
                 contentResolver.takePersistableUriPermission(
-                    sharedUri,
-                    Intent.FLAG_GRANT_READ_URI_PERMISSION
+                    sharedUri, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 Logger.logInfo(
-                    Tags.IncomingIntent,
-                    "Success granting FLAG_GRANT_READ_URI_PERMISSION"
+                    Tags.IncomingIntent, "Success granting FLAG_GRANT_READ_URI_PERMISSION"
                 )
             } catch (e: SecurityException) {
                 Logger.logWarning(Tags.IncomingIntent, e.toString())
@@ -149,8 +152,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
-                Tags.IncomingIntent,
-                "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
+                Tags.IncomingIntent, "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
             )
         } else {
             Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
@@ -263,4 +265,5 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(intent)
     }
+
 }

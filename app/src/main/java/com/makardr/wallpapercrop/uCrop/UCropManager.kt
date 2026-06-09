@@ -1,12 +1,12 @@
-package com.makardr.wallpapercrop
+package com.makardr.wallpapercrop.uCrop
 
-import android.app.Activity.RESULT_CANCELED
-import android.app.Activity.RESULT_OK
+import android.app.Activity
 import android.content.Context
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
-import androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.makardr.wallpapercrop.ImageManager
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.utils.Logger
@@ -25,17 +25,22 @@ class UCropManager(
             setCompressionFormat(Bitmap.CompressFormat.PNG)
         }
 
-        UCrop.of(uri, AppConstants.imageCacheOutputUri(context))
+        val intent = UCrop.of(uri, AppConstants.imageCacheOutputUri(context))
             .withAspectRatio(screenWidth.toFloat(), screenHeight.toFloat())
             .withOptions(options)
-            .start(context, cropResultLauncher)
+            .getIntent(context)
+            .apply {
+                setClass(context, PortraitUCropActivity::class.java)
+            }
+
+        cropResultLauncher.launch(intent)
     }
 
     private val cropResultLauncher = caller.registerForActivityResult(
-        StartActivityForResult()
+        ActivityResultContracts.StartActivityForResult()
     ) { result ->
         when (result.resultCode) {
-            RESULT_OK -> {
+            Activity.RESULT_OK -> {
                 //val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateIsCropped()
                 Logger.logInfo(
@@ -44,7 +49,7 @@ class UCropManager(
                 )
             }
 
-            RESULT_CANCELED -> {
+            Activity.RESULT_CANCELED -> {
                 Logger.logInfo(Tags.CropResult, "User cancelled crop")
                 imageManager.resetCrop()
             }
