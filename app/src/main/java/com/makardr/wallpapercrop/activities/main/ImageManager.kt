@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop
+package com.makardr.wallpapercrop.activities.main
 
 import android.app.WallpaperManager
 import android.content.Context
@@ -9,11 +9,13 @@ import android.view.View
 import android.widget.Button
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import coil.load
+import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
-import com.makardr.wallpapercrop.utils.WallpaperFlag
+import com.makardr.wallpapercrop.common.utils.Logger
+import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -185,10 +187,10 @@ class ImageManager(
                         Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
 
                         withContext(Dispatchers.Main) {
-                            android.widget.Toast.makeText(
+                            Toast.makeText(
                                 context,
                                 context.getString(R.string.toast_notification),
-                                android.widget.Toast.LENGTH_SHORT
+                                Toast.LENGTH_SHORT
                             ).show()
                         }
                     }

@@ -1,8 +1,8 @@
-package com.makardr.wallpapercrop.uCrop
+package com.makardr.wallpapercrop.activities.uCrop
 
 import android.content.pm.ActivityInfo
 import android.os.Bundle
-import com.makardr.wallpapercrop.utils.isTablet
+import com.makardr.wallpapercrop.common.utils.isTablet
 import com.yalantis.ucrop.UCropActivity
 
 class PortraitUCropActivity : UCropActivity() {

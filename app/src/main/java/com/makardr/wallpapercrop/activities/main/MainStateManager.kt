@@ -1,12 +1,12 @@
-package com.makardr.wallpapercrop
+package com.makardr.wallpapercrop.activities.main
 
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
+import com.makardr.wallpapercrop.common.utils.Logger
 
-class SaveStateManager(private val imageManager: ImageManager) {
+class MainStateManager(private val imageManager: ImageManager) {
     private val saveInstanceUri = "parcelableUri"
     private val savedInstanceIsCropped = "imageCropped"
 

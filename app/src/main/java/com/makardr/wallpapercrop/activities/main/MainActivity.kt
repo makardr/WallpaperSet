@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop
+package com.makardr.wallpapercrop.activities.main
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -25,12 +25,13 @@ import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.lifecycleScope
 import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
-import com.makardr.wallpapercrop.utils.WallpaperFlag
+import com.makardr.wallpapercrop.common.utils.Logger
+import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.makardr.wallpapercrop.uCrop.UCropManager
-import com.makardr.wallpapercrop.utils.isTablet
+import com.makardr.wallpapercrop.R
+import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
+import com.makardr.wallpapercrop.common.utils.isTablet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -48,18 +49,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-    private lateinit var saveStateManager: SaveStateManager
-    private lateinit var uCropManager: UCropManager
+    private lateinit var saveStateManager: MainStateManager
+    private lateinit var uCropActivity: UCropActivity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logDebug(Tags.Lifecycle, "onCreate")
-        if (!isTablet()) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
         setupInterface()
-        saveStateManager = SaveStateManager(imageManager)
-        uCropManager = UCropManager(this, imageManager)
+        saveStateManager = MainStateManager(imageManager)
+        uCropActivity = UCropActivity(this, imageManager)
 
         if (savedInstanceState != null) {
             saveStateManager.loadState(savedInstanceState)
@@ -172,10 +170,14 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("InflateParams")
     private fun setupInterface() {
         setContentView(R.layout.activity_main)
+        if (!isTablet()) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         enableEdgeToEdge()
 
         dialog = BottomSheetDialog(this)
         setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
+
         dialog.setContentView(setWallpaperLayout)
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
@@ -215,7 +217,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton.setOnClickListener {
             imageManager.getOriginUri()?.let {
-                uCropManager.launchUCropActivity(it)
+                uCropActivity.launchUCropActivity(it)
             }
         }
 

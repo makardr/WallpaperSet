@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop.uCrop
+package com.makardr.wallpapercrop.activities.uCrop
 
 import android.app.Activity
 import android.content.Context
@@ -6,14 +6,14 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
-import com.makardr.wallpapercrop.ImageManager
+import com.makardr.wallpapercrop.activities.main.ImageManager
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
-import com.makardr.wallpapercrop.utils.isTablet
+import com.makardr.wallpapercrop.common.utils.Logger
+import com.makardr.wallpapercrop.common.utils.isTablet
 import com.yalantis.ucrop.UCrop
 
-class UCropManager(
+class UCropActivity(
     caller: ActivityResultCaller,
     private val imageManager: ImageManager
 ) {
