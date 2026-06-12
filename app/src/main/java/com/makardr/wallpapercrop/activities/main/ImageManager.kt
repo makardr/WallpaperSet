@@ -5,12 +5,7 @@ import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
-import android.view.View
-import android.widget.Button
-import android.widget.ImageView
-import android.widget.TextView
 import android.widget.Toast
-import coil.load
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
@@ -18,18 +13,15 @@ import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.File
-import java.io.FileNotFoundException
 import java.io.IOException
 
 class ImageManager(
     private val context: Context,
-    private val imagePreview: ImageView,
     private val scope: CoroutineScope,
-    private val setWallpaper: Button,
-    private val tooltip: TextView
 ) {
     private var imageUri: Uri? = null
     private var croppedImageUri: Uri
@@ -37,54 +29,61 @@ class ImageManager(
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
+    private val _refreshImage = MutableSharedFlow<Uri?>(replay = 1)
+    val refreshImage: SharedFlow<Uri?> = _refreshImage
+
+
     init {
         Logger.logDebug(
             Tags.Lifecycle,
             "ImageManager init, ${imageUri ?: "uri = null"}, imageIsCropped $imageIsCropped"
         )
-        if (imageUri != null) {
-            enableInterface()
-        } else {
-            disableInterface()
-        }
         croppedImageUri = AppConstants.imageCacheOutputUri(context)
     }
 
+    fun notifyImageUpdated() {
+        scope.launch {
+            Logger.logDebug(Tags.Lifecycle, "Emitting refreshImage, subscribers: ${refreshImage.replayCache}")
+            if (!imageIsCropped()) {
+                Logger.logDebug(
+                    Tags.Uri,
+                    "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageUri "
+                )
+                _refreshImage.emit(imageUri)
+            } else {
+                Logger.logDebug(
+                    Tags.Uri,
+                    "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $croppedImageUri "
+                )
+                _refreshImage.emit(croppedImageUri)
+            }
+
+        }
+    }
     fun updateOriginUri(uri: Uri?) {
-        Logger.logInfo(Tags.Uri, "Uri updated: $imageUri")
         imageUri = uri
         imageIsCropped = false
-
+        Logger.logInfo(Tags.Uri, "Uri updated: $imageUri, imageIsCropped: $imageIsCropped")
         imageUri?.let {
-            refreshPreviewImage(it)
-            enableInterface()
+            notifyImageUpdated()
+//            enableInterface()
         }
     }
 
     fun updateIsCropped() {
         Logger.logInfo(Tags.Uri, "imageIsCropped updated")
         imageIsCropped = true
-        refreshPreviewImage(croppedImageUri)
+        notifyImageUpdated()
 
-        enableInterface()
+//        enableInterface()
     }
 
     fun resetCrop() {
         Logger.logInfo(Tags.Uri, "Reset image crop")
         imageIsCropped = false
-        imageUri?.let { refreshPreviewImage(it) }
-    }
-
-    fun enableInterface() {
-        Logger.logInfo(Tags.SetupInterface, "Interface enabled")
-        setWallpaper.isEnabled = true
-        tooltip.visibility = View.INVISIBLE
-    }
-
-    fun disableInterface() {
-        Logger.logInfo(Tags.SetupInterface, "Interface disabled")
-        setWallpaper.isEnabled = false
-        tooltip.visibility = View.VISIBLE
+        imageUri?.let {
+            notifyImageUpdated()
+        }
     }
 
     fun getOriginUri(): Uri? {
@@ -95,77 +94,10 @@ class ImageManager(
         return imageIsCropped
     }
 
-    private fun refreshPreviewImage(uri: Uri) {
-        scope.launch {
-            if (!uri.available(context)) {
-                Logger.logError(Tags.Uri, "File does not exist, resetting uri: $uri")
-                disableInterface()
-                imageIsCropped = false
-                imageUri = null
-            } else {
-                imagePreview.load(uri) {
-                    crossfade(true)
-                }
-            }
-        }
-    }
-
-    private fun Uri.available(context: Context): Boolean {
-        return when (scheme) {
-            "file" -> {
-                val file = path?.let { File(it) }
-                when {
-                    file == null -> {
-                        Logger.logError(Tags.Uri, "File URI has null path: $this")
-                        false
-                    }
-                    !file.exists() -> {
-                        Logger.logError(Tags.Uri, "File does not exist: ${file.absolutePath}")
-                        false
-                    }
-                    !file.canRead() -> {
-                        Logger.logError(Tags.Uri, "File exists but is not readable (permissions?): ${file.absolutePath}")
-                        false
-                    }
-                    file.length() == 0L -> {
-                        Logger.logError(Tags.Uri, "File exists and is readable but is empty: ${file.absolutePath}")
-                        false
-                    }
-                    else -> true
-                }
-            }
-
-            "content" -> {
-                try {
-                    context.contentResolver.openInputStream(this)?.use {
-                        val hasBytes = it.read() != -1
-                        if (!hasBytes) Logger.logError(Tags.Uri, "Content URI opened successfully but stream is empty: $this")
-                        hasBytes
-                    } ?: run {
-                        Logger.logError(Tags.Uri, "ContentResolver.openInputStream returned null for: $this")
-                        false
-                    }
-                } catch (e: SecurityException) {
-                    Logger.logError(Tags.Uri, "Permission denied for URI: $this — grant may have expired or was never acquired. ${e.message}")
-                    false
-                } catch (e: FileNotFoundException) {
-                    Logger.logError(Tags.Uri, "File not found via content provider: $this — provider registered but file missing. ${e.message}")
-                    false
-                } catch (e: Exception) {
-                    Logger.logError(Tags.Uri, "Unexpected error reading URI: $this — ${e.javaClass.simpleName}: ${e.message}")
-                    false
-                }
-            }
-
-            null -> {
-                Logger.logError(Tags.Uri, "URI has null scheme: $this")
-                false
-            }
-            else -> {
-                Logger.logError(Tags.Uri, "Unsupported URI scheme '${scheme}': $this")
-                false
-            }
-        }
+    fun triggerFailState() {
+        imageIsCropped = false
+        imageUri = null
+        notifyImageUpdated()
     }
 
     fun setWallpaper(@WallpaperFlag flag: Int) {

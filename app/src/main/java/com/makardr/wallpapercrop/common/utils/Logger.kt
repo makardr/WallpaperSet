@@ -1,6 +1,9 @@
 package com.makardr.wallpapercrop.common.utils
 
 import android.util.Log
+import android.widget.ImageView
+import android.widget.TextView
+import com.makardr.wallpapercrop.activities.main.ImageManager
 import com.makardr.wallpapercrop.common.Tags
 
 object Logger {
@@ -28,6 +31,17 @@ object Logger {
     fun logError(tag: Tags, message: String) {
         if (ENABLED) {
             Log.e(tag.toString(), message)
+        }
+    }
+
+    fun logCurrentAppState(imageManager: ImageManager, imagePreview: ImageView, tooltip: TextView) {
+        if (ENABLED) {
+            Log.d(Tags.AppState.toString(), "--------------------------")
+            Log.d(Tags.AppState.toString(), "Image origin uri: ${imageManager.getOriginUri()}")
+            Log.d(Tags.AppState.toString(), "Is cropped: ${imageManager.imageIsCropped()}")
+            Log.d(Tags.AppState.toString(), "Image preview is empty: ${imagePreview.drawable == null}")
+            Log.d(Tags.AppState.toString(), "Tooltip visible: ${tooltip.isActivated}")
+            Log.d(Tags.AppState.toString(), "--------------------------")
         }
     }
 }

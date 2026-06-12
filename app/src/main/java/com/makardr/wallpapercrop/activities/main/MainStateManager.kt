@@ -11,7 +11,7 @@ class MainStateManager(private val imageManager: ImageManager) {
     private val savedInstanceIsCropped = "imageCropped"
 
     fun saveState(outState: Bundle) {
-        Logger.logDebug(
+        Logger.logInfo(
             Tags.Uri,
             "Saving origin image uri ${imageManager.getOriginUri()} and is cropped ${imageManager.imageIsCropped()}"
         )
@@ -21,6 +21,7 @@ class MainStateManager(private val imageManager: ImageManager) {
 
     fun loadState(savedBundle: Bundle?) {
         if (savedBundle != null) {
+            Logger.logInfo(Tags.SavedState, "Found saved state, loading")
             val savedImageUri =
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
                     savedBundle.getParcelable(
@@ -51,7 +52,7 @@ class MainStateManager(private val imageManager: ImageManager) {
             }
 
         } else {
-            Logger.logDebug(Tags.Uri, "savedBundle is null")
+            Logger.logDebug(Tags.SavedState, "savedBundle is null")
             Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent from fresh start")
         }
     }

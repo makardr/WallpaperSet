@@ -23,7 +23,10 @@ import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import coil.load
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
@@ -31,6 +34,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
+import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -54,16 +58,42 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Logger.logDebug(Tags.Lifecycle, "onCreate")
+        Logger.logInfo(Tags.Lifecycle, "onCreate")
         setupInterface()
         saveStateManager = MainStateManager(imageManager)
         uCropActivity = UCropActivity(this, imageManager)
 
         if (savedInstanceState != null) {
             saveStateManager.loadState(savedInstanceState)
+            if (imageManager.getOriginUri() != null) {
+                enableInterface()
+            }
         } else {
             handleIncomingIntent(intent)
         }
+
+        lifecycleScope.launch {
+            Logger.logDebug(Tags.Lifecycle, "Starting event listening")
+            Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                imageManager.refreshImage.collect { uri ->
+                    Logger.logInfo(
+                        Tags.Uri,
+                        "Image refresh triggered, isCropped: ${imageManager.imageIsCropped()} uri: ${imageManager.getOriginUri()}"
+                    )
+                    if (uri != null) {
+                        refreshPreviewImage(uri)
+                        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+                    } else {
+                        Logger.logInfo(Tags.Uri, "Image refresh failed, uri is null")
+                        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+                    }
+
+                }
+            }
+        }
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -83,12 +113,14 @@ class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         Logger.logDebug(Tags.Lifecycle, "onStart")
+//        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity becomes visible (not yet interactive)
     }
 
     override fun onResume() {
         super.onResume()
         Logger.logDebug(Tags.Lifecycle, "onResume")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity is in foreground and interactive
         // Register listeners, start camera, resume animations
     }
@@ -96,6 +128,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         Logger.logDebug(Tags.Lifecycle, "onPause")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Losing focus
         // Unregister sensors, pause animations
     }
@@ -103,6 +136,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         Logger.logDebug(Tags.Lifecycle, "onStop")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity fully hidden/backgrounded
         // Save data, release heavy resources
     }
@@ -110,6 +144,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRestart() {
         super.onRestart()
         Logger.logDebug(Tags.Lifecycle, "onRestart")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Called after onStop() when user navigates back to activity
     }
 
@@ -193,7 +228,7 @@ class MainActivity : AppCompatActivity() {
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
 
-        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper, tooltip)
+        imageManager = ImageManager(this, lifecycleScope)
 
         setWallpaperSystem.setOnClickListener {
             Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
@@ -247,6 +282,34 @@ class MainActivity : AppCompatActivity() {
                 insets
             }
         }
+
+        disableInterface()
+    }
+
+    private fun enableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface enabled")
+        setWallpaper.isEnabled = true
+        tooltip.visibility = View.INVISIBLE
+    }
+
+    private fun disableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface disabled")
+        setWallpaper.isEnabled = false
+        tooltip.visibility = View.VISIBLE
+    }
+
+    private fun refreshPreviewImage(uri: Uri) {
+        if (!uri.available(this@MainActivity)) {
+            Logger.logError(Tags.Uri, "File does not exist, resetting uri: $uri")
+            imageManager.triggerFailState()
+            disableInterface()
+        } else {
+            Logger.logInfo(Tags.Uri, "Refreshing preview image: $uri")
+            wallpaperPreview.load(uri) {
+                crossfade(true)
+            }
+            enableInterface()
+        }
     }
 
     private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
@@ -267,5 +330,4 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(intent)
     }
-
 }

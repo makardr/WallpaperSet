@@ -8,5 +8,7 @@ enum class Tags {
     SetWallpaper,
     SetupInterface,
     DimensionCrop,
-    Lifecycle
+    Lifecycle,
+    SavedState,
+    AppState
 }
