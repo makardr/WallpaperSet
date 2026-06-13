@@ -27,6 +27,7 @@ import androidx.lifecycle.lifecycleScope
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.utils.Logger
 import com.makardr.wallpapercrop.utils.WallpaperFlag
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.uCrop.UCropManager
@@ -209,8 +210,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         setWallpaper.setOnClickListener {
-            dialog.setContentView(setWallpaperLayout)
             dialog.show()
+            if (isTablet()) {
+                (dialog as? BottomSheetDialog)?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
 
         cropImageButton.setOnClickListener {
