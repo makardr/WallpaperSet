@@ -1,37 +1,38 @@
 package com.makardr.wallpapercrop.activities.main
 
+import android.app.Application
 import android.app.WallpaperManager
-import android.content.Context
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
 import android.widget.Toast
+import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.viewModelScope
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharedFlow
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.IOException
 
-class ImageManager(
-    private val context: Context,
-    private val scope: CoroutineScope,
-) {
+class ImageManagerViewModel(application: Application) : AndroidViewModel(application) {
+    private val context = getApplication<Application>()
+
+    //TODO: Retire MainStateManager for LiveData
     private var imageUri: Uri? = null
     private var croppedImageUri: Uri
     private var imageIsCropped: Boolean = false
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
 
-    private val _refreshImage = MutableSharedFlow<Uri?>(replay = 1)
-    val refreshImage: SharedFlow<Uri?> = _refreshImage
-
+    private val _refreshChannel = Channel<Uri?>(capacity = 2)
+    val refreshImageEventChannel: Flow<Uri?> = _refreshChannel.receiveAsFlow()
 
     init {
         Logger.logDebug(
@@ -42,31 +43,28 @@ class ImageManager(
     }
 
     fun notifyImageUpdated() {
-        scope.launch {
-            Logger.logDebug(Tags.Lifecycle, "Emitting refreshImage, subscribers: ${refreshImage.replayCache}")
-            if (!imageIsCropped()) {
-                Logger.logDebug(
-                    Tags.Uri,
-                    "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageUri "
-                )
-                _refreshImage.emit(imageUri)
-            } else {
-                Logger.logDebug(
-                    Tags.Uri,
-                    "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $croppedImageUri "
-                )
-                _refreshImage.emit(croppedImageUri)
-            }
-
+        if (!imageIsCropped()) {
+            Logger.logDebug(
+                Tags.Uri,
+                "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageUri "
+            )
+            _refreshChannel.trySend(imageUri)
+        } else {
+            Logger.logDebug(
+                Tags.Uri,
+                "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $croppedImageUri "
+            )
+            _refreshChannel.trySend(croppedImageUri)
         }
+
     }
+
     fun updateOriginUri(uri: Uri?) {
         imageUri = uri
         imageIsCropped = false
         Logger.logInfo(Tags.Uri, "Uri updated: $imageUri, imageIsCropped: $imageIsCropped")
         imageUri?.let {
             notifyImageUpdated()
-//            enableInterface()
         }
     }
 
@@ -74,8 +72,6 @@ class ImageManager(
         Logger.logInfo(Tags.Uri, "imageIsCropped updated")
         imageIsCropped = true
         notifyImageUpdated()
-
-//        enableInterface()
     }
 
     fun resetCrop() {
@@ -101,7 +97,7 @@ class ImageManager(
     }
 
     fun setWallpaper(@WallpaperFlag flag: Int) {
-        scope.launch {
+        viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
                     val (currentUri, cropHint) = if (imageIsCropped) {

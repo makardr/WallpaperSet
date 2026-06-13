@@ -6,7 +6,7 @@ import android.os.Bundle
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 
-class MainStateManager(private val imageManager: ImageManager) {
+class MainStateManager(private val imageManager: ImageManagerViewModel) {
     private val saveInstanceUri = "parcelableUri"
     private val savedInstanceIsCropped = "imageCropped"
 

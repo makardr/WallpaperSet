@@ -3,7 +3,7 @@ package com.makardr.wallpapercrop.common.utils
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
-import com.makardr.wallpapercrop.activities.main.ImageManager
+import com.makardr.wallpapercrop.activities.main.ImageManagerViewModel
 import com.makardr.wallpapercrop.common.Tags
 
 object Logger {
@@ -34,7 +34,7 @@ object Logger {
         }
     }
 
-    fun logCurrentAppState(imageManager: ImageManager, imagePreview: ImageView, tooltip: TextView) {
+    fun logCurrentAppState(imageManager: ImageManagerViewModel, imagePreview: ImageView, tooltip: TextView) {
         if (ENABLED) {
             Log.d(Tags.AppState.toString(), "--------------------------")
             Log.d(Tags.AppState.toString(), "Image origin uri: ${imageManager.getOriginUri()}")

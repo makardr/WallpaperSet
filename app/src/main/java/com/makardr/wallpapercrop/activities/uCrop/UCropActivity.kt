@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
-import com.makardr.wallpapercrop.activities.main.ImageManager
+import com.makardr.wallpapercrop.activities.main.ImageManagerViewModel
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
@@ -15,7 +15,7 @@ import com.yalantis.ucrop.UCrop
 
 class UCropActivity(
     caller: ActivityResultCaller,
-    private val imageManager: ImageManager
+    private val imageManager: ImageManagerViewModel
 ) {
     private val context = caller as Context
 

@@ -17,6 +17,7 @@ import android.widget.TextView
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
@@ -42,7 +43,12 @@ import kotlin.time.Duration.Companion.milliseconds
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var imageManager: ImageManager
+
+    private val imageManager: ImageManagerViewModel by viewModels()
+    private lateinit var saveStateManager: MainStateManager
+    private lateinit var uCropActivity: UCropActivity
+
+    //Interface elements
     private lateinit var wallpaperPreview: ImageView
     private lateinit var setWallpaperSystem: Button
     private lateinit var setWallpaperLock: Button
@@ -53,8 +59,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-    private lateinit var saveStateManager: MainStateManager
-    private lateinit var uCropActivity: UCropActivity
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,6 +66,7 @@ class MainActivity : AppCompatActivity() {
         setupInterface()
         saveStateManager = MainStateManager(imageManager)
         uCropActivity = UCropActivity(this, imageManager)
+        collectEvents()
 
         if (savedInstanceState != null) {
             saveStateManager.loadState(savedInstanceState)
@@ -72,11 +77,17 @@ class MainActivity : AppCompatActivity() {
             handleIncomingIntent(intent)
         }
 
+
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+
+    }
+
+    private fun collectEvents() {
         lifecycleScope.launch {
             Logger.logDebug(Tags.Lifecycle, "Starting event listening")
             Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                imageManager.refreshImage.collect { uri ->
+                imageManager.refreshImageEventChannel.collect { uri ->
                     Logger.logInfo(
                         Tags.Uri,
                         "Image refresh triggered, isCropped: ${imageManager.imageIsCropped()} uri: ${imageManager.getOriginUri()}"
@@ -92,8 +103,6 @@ class MainActivity : AppCompatActivity() {
                 }
             }
         }
-        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
-
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
@@ -112,7 +121,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Logger.logDebug(Tags.Lifecycle, "onStart")
+//        Logger.logDebug(Tags.Lifecycle, "onStart")
 //        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity becomes visible (not yet interactive)
     }
@@ -227,8 +236,6 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
-
-        imageManager = ImageManager(this, lifecycleScope)
 
         setWallpaperSystem.setOnClickListener {
             Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
