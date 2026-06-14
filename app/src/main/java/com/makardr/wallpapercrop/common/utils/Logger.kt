@@ -37,8 +37,8 @@ object Logger {
     fun logCurrentAppState(imageManager: ImageManagerViewModel, imagePreview: ImageView, tooltip: TextView) {
         if (ENABLED) {
             Log.d(Tags.AppState.toString(), "--------------------------")
-            Log.d(Tags.AppState.toString(), "Image origin uri: ${imageManager.getOriginUri()}")
-            Log.d(Tags.AppState.toString(), "Is cropped: ${imageManager.imageIsCropped()}")
+            Log.d(Tags.AppState.toString(), "Image origin uri: ${imageManager.imageUri.value}")
+            Log.d(Tags.AppState.toString(), "Is cropped: ${imageManager.imageIsCropped.value}")
             Log.d(Tags.AppState.toString(), "Image preview is empty: ${imagePreview.drawable == null}")
             Log.d(Tags.AppState.toString(), "Tooltip visible: ${tooltip.isActivated}")
             Log.d(Tags.AppState.toString(), "--------------------------")

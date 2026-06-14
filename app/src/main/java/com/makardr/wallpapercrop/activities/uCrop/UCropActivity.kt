@@ -51,7 +51,7 @@ class UCropActivity(
                 imageManager.updateIsCropped()
                 Logger.logInfo(
                     Tags.CropResult,
-                    "Crop result set imageUri as ${imageManager.getOriginUri()}"
+                    "Crop result set imageUri as ${imageManager.imageUri.value}"
                 )
             }
 

@@ -14,6 +14,7 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -45,7 +46,6 @@ import kotlin.time.Duration.Companion.milliseconds
 class MainActivity : AppCompatActivity() {
 
     private val imageManager: ImageManagerViewModel by viewModels()
-    private lateinit var saveStateManager: MainStateManager
     private lateinit var uCropActivity: UCropActivity
 
     //Interface elements
@@ -64,15 +64,20 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Logger.logInfo(Tags.Lifecycle, "onCreate")
         setupInterface()
-        saveStateManager = MainStateManager(imageManager)
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
 
         if (savedInstanceState != null) {
-            saveStateManager.loadState(savedInstanceState)
-            if (imageManager.getOriginUri() != null) {
-                enableInterface()
+            if (imageManager.imageUri.value != null) {
+                if (!imageManager.imageIsCropped.value) {
+                    refreshPreviewImage(imageManager.imageUri.value!!)
+                    enableInterface()
+                } else {
+                    refreshPreviewImage(imageManager.croppedImageUri)
+                    enableInterface()
+                }
             }
+
         } else {
             handleIncomingIntent(intent)
         }
@@ -88,10 +93,6 @@ class MainActivity : AppCompatActivity() {
             Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 imageManager.refreshImageEventChannel.collect { uri ->
-                    Logger.logInfo(
-                        Tags.Uri,
-                        "Image refresh triggered, isCropped: ${imageManager.imageIsCropped()} uri: ${imageManager.getOriginUri()}"
-                    )
                     if (uri != null) {
                         refreshPreviewImage(uri)
                         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
@@ -107,7 +108,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        saveStateManager.saveState(outState)
     }
 
     override fun onDestroy() {
@@ -194,7 +194,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
-                Tags.IncomingIntent, "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
+                Tags.IncomingIntent, "handleImageGeneric set uri as ${imageManager.imageUri.value}"
             )
         } else {
             Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
@@ -258,7 +258,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         cropImageButton.setOnClickListener {
-            imageManager.getOriginUri()?.let {
+            imageManager.imageUri.value?.let {
                 uCropActivity.launchUCropActivity(it)
             }
         }
@@ -324,7 +324,12 @@ class MainActivity : AppCompatActivity() {
         dialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
-            delay(500.milliseconds)
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.toast_notification),
+                Toast.LENGTH_SHORT
+            ).show()
+            delay(1000.milliseconds)
             Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
         }

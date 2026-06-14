@@ -5,10 +5,8 @@ import android.app.WallpaperManager
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.net.Uri
-import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
-import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
@@ -16,6 +14,9 @@ import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -23,32 +24,24 @@ import java.io.IOException
 
 class ImageManagerViewModel(application: Application) : AndroidViewModel(application) {
     private val context = getApplication<Application>()
-
-    //TODO: Retire MainStateManager for LiveData
-    private var imageUri: Uri? = null
-    private var croppedImageUri: Uri
-    private var imageIsCropped: Boolean = false
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
-
     private val _refreshChannel = Channel<Uri?>(capacity = 2)
+    private val _imageUri = MutableStateFlow<Uri?>(null)
+    private val _imageIsCropped = MutableStateFlow(false)
+    val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
+    val imageIsCropped: StateFlow<Boolean> = _imageIsCropped.asStateFlow()
     val refreshImageEventChannel: Flow<Uri?> = _refreshChannel.receiveAsFlow()
+    var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
 
-    init {
-        Logger.logDebug(
-            Tags.Lifecycle,
-            "ImageManager init, ${imageUri ?: "uri = null"}, imageIsCropped $imageIsCropped"
-        )
-        croppedImageUri = AppConstants.imageCacheOutputUri(context)
-    }
-
+    //TODO: Simplify image update functionality with flows
     fun notifyImageUpdated() {
-        if (!imageIsCropped()) {
+        if (!_imageIsCropped.value) {
             Logger.logDebug(
                 Tags.Uri,
                 "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageUri "
             )
-            _refreshChannel.trySend(imageUri)
+            _refreshChannel.trySend(imageUri.value)
         } else {
             Logger.logDebug(
                 Tags.Uri,
@@ -56,43 +49,34 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
             )
             _refreshChannel.trySend(croppedImageUri)
         }
-
     }
 
     fun updateOriginUri(uri: Uri?) {
-        imageUri = uri
-        imageIsCropped = false
+        _imageUri.value = uri
+        _imageIsCropped.value = false
         Logger.logInfo(Tags.Uri, "Uri updated: $imageUri, imageIsCropped: $imageIsCropped")
-        imageUri?.let {
+        imageUri.value?.let {
             notifyImageUpdated()
         }
     }
 
     fun updateIsCropped() {
         Logger.logInfo(Tags.Uri, "imageIsCropped updated")
-        imageIsCropped = true
+        _imageIsCropped.value = true
         notifyImageUpdated()
     }
 
     fun resetCrop() {
         Logger.logInfo(Tags.Uri, "Reset image crop")
-        imageIsCropped = false
-        imageUri?.let {
+        _imageIsCropped.value = false
+        _imageUri.value?.let {
             notifyImageUpdated()
         }
     }
 
-    fun getOriginUri(): Uri? {
-        return imageUri
-    }
-
-    fun imageIsCropped(): Boolean {
-        return imageIsCropped
-    }
-
     fun triggerFailState() {
-        imageIsCropped = false
-        imageUri = null
+        _imageIsCropped.value = false
+        _imageUri.value = null
         notifyImageUpdated()
     }
 
@@ -100,27 +84,22 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val (currentUri, cropHint) = if (imageIsCropped) {
+                    val isCropped = imageIsCropped.value
+                    val originUri = imageUri.value
+
+                    val (currentUri, cropHint) = if (isCropped) {
                         croppedImageUri to calculateCropHint(croppedImageUri)
                     } else {
-                        imageUri to imageUri?.let { calculateCropHint(it) }
+                        originUri to originUri?.let { calculateCropHint(it) }
                     }
 
-                    currentUri?.let {
+                    currentUri?.let { uri ->
                         val wallpaperManager = WallpaperManager.getInstance(context)
 
-                        context.contentResolver.openInputStream(it)?.use { stream ->
+                        context.contentResolver.openInputStream(uri)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
                         Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
-
-                        withContext(Dispatchers.Main) {
-                            Toast.makeText(
-                                context,
-                                context.getString(R.string.toast_notification),
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
                     }
                 }
             } catch (e: IOException) {
