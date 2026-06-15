@@ -9,4 +9,6 @@
     <string name="set_wallpaper_lockscreen_option">Lukustuskuva</string>
     <string name="set_wallpaper_both_option">Avakuva ja lukustuskuva</string>
     <string name="toast_notification">Taustapilt rakendatud!</string>
+    <string name="settings_button_description">Seaded</string>
+    <string name="album_button_description">Album</string>
 </resources>

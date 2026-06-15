@@ -9,4 +9,6 @@
     <string name="set_wallpaper_lockscreen_option">Lock screen</string>
     <string name="set_wallpaper_both_option">Home and lock screen</string>
     <string name="toast_notification">Wallpaper applied!</string>
+    <string name="settings_button_description">Settings</string>
+    <string name="album_button_description">Album</string>
 </resources>

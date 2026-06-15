@@ -24,21 +24,46 @@
         android:textColor="@color/text_color"
         android:textSize="20sp" />
 
-    <ImageButton
-        android:id="@+id/cropImage"
-        style="@style/ImgButton"
-        android:layout_gravity="top|end"
-        android:background="@drawable/bg_icon_overlay"
-        android:contentDescription="@string/crop_selected_image_description"
-        android:src="@drawable/crop_image_button"
-        app:tint="@android:color/white" />
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="top|start"
+        android:orientation="horizontal">
+
+        <ImageButton
+            android:id="@+id/openExplorer"
+            style="@style/ImgButton"
+            android:contentDescription="@string/open_image_explorer_description"
+            android:src="@drawable/open_file_explorer_button" />
+
+        <ImageButton
+            android:id="@+id/cropImage"
+            style="@style/ImgButton"
+            android:layout_marginStart="0dp"
+            android:background="@drawable/bg_icon_overlay"
+            android:contentDescription="@string/crop_selected_image_description"
+            android:src="@drawable/crop_image_button"
+            app:tint="@android:color/white" />
+
+        <ImageButton
+            android:id="@+id/openAlbum"
+            style="@style/ImgButton"
+            android:layout_marginStart="0dp"
+            android:contentDescription="@string/album_button_description"
+            android:src="@drawable/reset_image"
+            android:scaleType="fitCenter"
+            android:padding="5dp"/>
+    </LinearLayout>
 
     <ImageButton
-        android:id="@+id/openExplorer"
+        android:id="@+id/openSettings"
         style="@style/ImgButton"
-        android:layout_gravity="top|start"
-        android:contentDescription="@string/open_image_explorer_description"
-        android:src="@drawable/open_file_explorer_button" />
+        android:layout_gravity="top|end"
+        android:contentDescription="@string/settings_button_description"
+        android:src="@drawable/open_settings_button"
+        app:tint="@android:color/white"
+        android:scaleType="fitCenter"
+        android:padding="5dp"/>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/setWallpaperButton"
