@@ -49,10 +49,6 @@ class UCropActivity(
             Activity.RESULT_OK -> {
                 //val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateIsCropped()
-                Logger.logInfo(
-                    Tags.CropResult,
-                    "Crop result set imageUri as ${imageManager.imageUri.value}"
-                )
             }
 
             Activity.RESULT_CANCELED -> {

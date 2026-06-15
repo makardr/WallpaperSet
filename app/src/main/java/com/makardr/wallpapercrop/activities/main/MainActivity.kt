@@ -68,16 +68,10 @@ class MainActivity : AppCompatActivity() {
         collectEvents()
 
         if (savedInstanceState != null) {
-            if (imageManager.imageUri.value != null) {
-                if (!imageManager.imageIsCropped.value) {
-                    refreshPreviewImage(imageManager.imageUri.value!!)
-                    enableInterface()
-                } else {
-                    refreshPreviewImage(imageManager.croppedImageUri)
-                    enableInterface()
-                }
+            if (imageManager.getImageUri() != null) {
+                refreshPreviewImage(imageManager.getImageUri()!!)
+                enableInterface()
             }
-
         } else {
             handleIncomingIntent(intent)
         }
@@ -90,17 +84,14 @@ class MainActivity : AppCompatActivity() {
     private fun collectEvents() {
         lifecycleScope.launch {
             Logger.logDebug(Tags.Lifecycle, "Starting event listening")
-            Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
             repeatOnLifecycle(Lifecycle.State.STARTED) {
-                imageManager.refreshImageEventChannel.collect { uri ->
-                    if (uri != null) {
-                        refreshPreviewImage(uri)
-                        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+                imageManager.refreshImageEventChannel.collect {
+                    if (imageManager.getImageUri() != null) {
+                        refreshPreviewImage(imageManager.getImageUri()!!)
                     } else {
                         Logger.logInfo(Tags.Uri, "Image refresh failed, uri is null")
-                        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
                     }
-
+                    Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
                 }
             }
         }
@@ -194,7 +185,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
-                Tags.IncomingIntent, "handleImageGeneric set uri as ${imageManager.imageUri.value}"
+                Tags.IncomingIntent, "handleImageGeneric set uri as $sharedUri"
             )
         } else {
             Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
@@ -258,7 +249,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         cropImageButton.setOnClickListener {
-            imageManager.imageUri.value?.let {
+            imageManager.getOriginUri()?.let {
                 uCropActivity.launchUCropActivity(it)
             }
         }

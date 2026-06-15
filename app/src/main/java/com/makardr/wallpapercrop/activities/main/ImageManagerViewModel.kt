@@ -14,9 +14,6 @@ import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.receiveAsFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -26,57 +23,59 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     private val context = getApplication<Application>()
     private val screenWidth: Int = context.resources.displayMetrics.widthPixels
     private val screenHeight: Int = context.resources.displayMetrics.heightPixels
-    private val _refreshChannel = Channel<Uri?>(capacity = 2)
-    private val _imageUri = MutableStateFlow<Uri?>(null)
-    private val _imageIsCropped = MutableStateFlow(false)
-    val imageUri: StateFlow<Uri?> = _imageUri.asStateFlow()
-    val imageIsCropped: StateFlow<Boolean> = _imageIsCropped.asStateFlow()
-    val refreshImageEventChannel: Flow<Uri?> = _refreshChannel.receiveAsFlow()
-    var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
+    private val _refreshChannel = Channel<Unit>(capacity = 2)
+    val refreshImageEventChannel: Flow<Unit> = _refreshChannel.receiveAsFlow()
+    private var imageOriginUri: Uri? = null
+    private var imageIsCropped = false
+    private var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
 
-    //TODO: Simplify image update functionality with flows
-    fun notifyImageUpdated() {
-        if (!_imageIsCropped.value) {
-            Logger.logDebug(
-                Tags.Uri,
-                "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageUri "
-            )
-            _refreshChannel.trySend(imageUri.value)
+    private fun notifyImageUpdated() {
+        Logger.logDebug(
+            Tags.Uri,
+            "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageOriginUri "
+        )
+        _refreshChannel.trySend(Unit)
+    }
+
+    fun getImageUri(): Uri? {
+        return if (!imageIsCropped) {
+            imageOriginUri
         } else {
-            Logger.logDebug(
-                Tags.Uri,
-                "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $croppedImageUri "
-            )
-            _refreshChannel.trySend(croppedImageUri)
+            croppedImageUri
         }
     }
 
+    //Used exclusively to crop only the original shared image
+    fun getOriginUri(): Uri? {
+        return imageOriginUri
+    }
+
     fun updateOriginUri(uri: Uri?) {
-        _imageUri.value = uri
-        _imageIsCropped.value = false
-        Logger.logInfo(Tags.Uri, "Uri updated: $imageUri, imageIsCropped: $imageIsCropped")
-        imageUri.value?.let {
+        imageOriginUri = uri
+        imageIsCropped = false
+        Logger.logInfo(Tags.Uri, "Uri updated: $imageOriginUri, imageIsCropped: $imageIsCropped")
+        imageOriginUri?.let {
             notifyImageUpdated()
         }
     }
 
     fun updateIsCropped() {
         Logger.logInfo(Tags.Uri, "imageIsCropped updated")
-        _imageIsCropped.value = true
+        imageIsCropped = true
         notifyImageUpdated()
     }
 
     fun resetCrop() {
         Logger.logInfo(Tags.Uri, "Reset image crop")
-        _imageIsCropped.value = false
-        _imageUri.value?.let {
+        imageIsCropped = false
+        imageOriginUri?.let {
             notifyImageUpdated()
         }
     }
 
     fun triggerFailState() {
-        _imageIsCropped.value = false
-        _imageUri.value = null
+        imageIsCropped = false
+        imageOriginUri = null
         notifyImageUpdated()
     }
 
@@ -84,13 +83,10 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
         viewModelScope.launch {
             try {
                 withContext(Dispatchers.IO) {
-                    val isCropped = imageIsCropped.value
-                    val originUri = imageUri.value
-
-                    val (currentUri, cropHint) = if (isCropped) {
+                    val (currentUri, cropHint) = if (imageIsCropped) {
                         croppedImageUri to calculateCropHint(croppedImageUri)
                     } else {
-                        originUri to originUri?.let { calculateCropHint(it) }
+                        imageOriginUri to imageOriginUri?.let { calculateCropHint(it) }
                     }
 
                     currentUri?.let { uri ->
