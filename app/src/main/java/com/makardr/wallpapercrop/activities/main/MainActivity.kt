@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop
+package com.makardr.wallpapercrop.activities.main
 
 import android.annotation.SuppressLint
 import android.app.Dialog
@@ -14,31 +14,42 @@ import android.widget.Button
 import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.marginBottom
 import androidx.core.view.marginTop
 import androidx.core.view.updateLayoutParams
+import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.repeatOnLifecycle
+import coil.load
 import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
-import com.makardr.wallpapercrop.utils.WallpaperFlag
+import com.makardr.wallpapercrop.common.utils.Logger
+import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
-import com.makardr.wallpapercrop.uCrop.UCropManager
-import com.makardr.wallpapercrop.utils.isTablet
+import com.makardr.wallpapercrop.R
+import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
+import com.makardr.wallpapercrop.common.utils.available
+import com.makardr.wallpapercrop.common.utils.isTablet
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
 
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var imageManager: ImageManager
+
+    private val imageManager: ImageManagerViewModel by viewModels()
+    private lateinit var uCropActivity: UCropActivity
+
+    //Interface elements
     private lateinit var wallpaperPreview: ImageView
     private lateinit var setWallpaperSystem: Button
     private lateinit var setWallpaperLock: Button
@@ -51,29 +62,46 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
-    private lateinit var saveStateManager: SaveStateManager
-    private lateinit var uCropManager: UCropManager
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Logger.logDebug(Tags.Lifecycle, "onCreate")
-        if (!isTablet()) {
-            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
-        }
+        Logger.logInfo(Tags.Lifecycle, "onCreate")
         setupInterface()
-        saveStateManager = SaveStateManager(imageManager)
-        uCropManager = UCropManager(this, imageManager)
+        uCropActivity = UCropActivity(this, imageManager)
+        collectEvents()
 
         if (savedInstanceState != null) {
-            saveStateManager.loadState(savedInstanceState)
+            if (imageManager.getImageUri() != null) {
+                refreshPreviewImage(imageManager.getImageUri()!!)
+                enableInterface()
+            }
         } else {
             handleIncomingIntent(intent)
+        }
+
+
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+
+    }
+
+    private fun collectEvents() {
+        lifecycleScope.launch {
+            Logger.logDebug(Tags.Lifecycle, "Starting event listening")
+            repeatOnLifecycle(Lifecycle.State.STARTED) {
+                imageManager.refreshImageEventChannel.collect {
+                    if (imageManager.getImageUri() != null) {
+                        refreshPreviewImage(imageManager.getImageUri()!!)
+                    } else {
+                        Logger.logInfo(Tags.Uri, "Image refresh failed, uri is null")
+                    }
+                    Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+                }
+            }
         }
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        saveStateManager.saveState(outState)
     }
 
     override fun onDestroy() {
@@ -94,6 +122,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         Logger.logDebug(Tags.Lifecycle, "onResume")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity is in foreground and interactive
         // Register listeners, start camera, resume animations
     }
@@ -101,6 +130,7 @@ class MainActivity : AppCompatActivity() {
     override fun onPause() {
         super.onPause()
         Logger.logDebug(Tags.Lifecycle, "onPause")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Losing focus
         // Unregister sensors, pause animations
     }
@@ -108,6 +138,7 @@ class MainActivity : AppCompatActivity() {
     override fun onStop() {
         super.onStop()
         Logger.logDebug(Tags.Lifecycle, "onStop")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity fully hidden/backgrounded
         // Save data, release heavy resources
     }
@@ -115,6 +146,7 @@ class MainActivity : AppCompatActivity() {
     override fun onRestart() {
         super.onRestart()
         Logger.logDebug(Tags.Lifecycle, "onRestart")
+        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Called after onStop() when user navigates back to activity
     }
 
@@ -155,7 +187,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
-                Tags.IncomingIntent, "handleImageGeneric set uri as ${imageManager.getOriginUri()}"
+                Tags.IncomingIntent, "handleImageGeneric set uri as $sharedUri"
             )
         } else {
             Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
@@ -175,10 +207,14 @@ class MainActivity : AppCompatActivity() {
     @SuppressLint("InflateParams")
     private fun setupInterface() {
         setContentView(R.layout.activity_main)
+        if (!isTablet()) {
+            requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
+        }
         enableEdgeToEdge()
 
         dialog = BottomSheetDialog(this)
         setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
+
         dialog.setContentView(setWallpaperLayout)
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
@@ -195,8 +231,6 @@ class MainActivity : AppCompatActivity() {
         openFileExplorer = findViewById(R.id.openExplorer)
         openAlbumButton = findViewById(R.id.openAlbum)
         openSettingsButton = findViewById(R.id.openSettings)
-
-        imageManager = ImageManager(this, wallpaperPreview, lifecycleScope, setWallpaper, tooltip)
 
         setWallpaperSystem.setOnClickListener {
             Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
@@ -222,7 +256,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton.setOnClickListener {
             imageManager.getOriginUri()?.let {
-                uCropManager.launchUCropActivity(it)
+                uCropActivity.launchUCropActivity(it)
             }
         }
 
@@ -268,6 +302,34 @@ class MainActivity : AppCompatActivity() {
                 insets
             }
         }
+
+        disableInterface()
+    }
+
+    private fun enableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface enabled")
+        setWallpaper.isEnabled = true
+        tooltip.visibility = View.INVISIBLE
+    }
+
+    private fun disableInterface() {
+        Logger.logInfo(Tags.SetupInterface, "Interface disabled")
+        setWallpaper.isEnabled = false
+        tooltip.visibility = View.VISIBLE
+    }
+
+    private fun refreshPreviewImage(uri: Uri) {
+        if (!uri.available(this@MainActivity)) {
+            Logger.logError(Tags.Uri, "File does not exist, resetting uri: $uri")
+            imageManager.triggerFailState()
+            disableInterface()
+        } else {
+            Logger.logInfo(Tags.Uri, "Refreshing preview image: $uri")
+            wallpaperPreview.load(uri) {
+                crossfade(true)
+            }
+            enableInterface()
+        }
     }
 
     private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
@@ -275,7 +337,12 @@ class MainActivity : AppCompatActivity() {
         dialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
-            delay(500.milliseconds)
+            Toast.makeText(
+                this@MainActivity,
+                getString(R.string.toast_notification),
+                Toast.LENGTH_SHORT
+            ).show()
+            delay(1000.milliseconds)
             Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
         }
@@ -288,5 +355,4 @@ class MainActivity : AppCompatActivity() {
         }
         startActivity(intent)
     }
-
 }
