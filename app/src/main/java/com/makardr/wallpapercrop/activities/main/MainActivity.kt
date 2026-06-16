@@ -32,6 +32,7 @@ import coil.load
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
+import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
@@ -56,6 +57,8 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaper: MaterialButton
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
+    private lateinit var openAlbumButton: ImageButton
+    private lateinit var openSettingsButton: ImageButton
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
@@ -112,8 +115,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-//        Logger.logDebug(Tags.Lifecycle, "onStart")
-//        Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+        Logger.logDebug(Tags.Lifecycle, "onStart")
         // Activity becomes visible (not yet interactive)
     }
 
@@ -227,6 +229,8 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
+        openAlbumButton = findViewById(R.id.openAlbum)
+        openSettingsButton = findViewById(R.id.openSettings)
 
         setWallpaperSystem.setOnClickListener {
             Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
@@ -244,8 +248,10 @@ class MainActivity : AppCompatActivity() {
         }
 
         setWallpaper.setOnClickListener {
-            dialog.setContentView(setWallpaperLayout)
             dialog.show()
+            if (isTablet()) {
+                (dialog as? BottomSheetDialog)?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
 
         cropImageButton.setOnClickListener {
@@ -260,6 +266,16 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
+        openAlbumButton.setOnClickListener {
+            Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
+            // TODO: Implement album logic
+        }
+
+        openSettingsButton.setOnClickListener {
+            Logger.logInfo(Tags.Lifecycle, "Open Settings button pressed")
+            // TODO: Implement settings logic
+        }
+
         ViewCompat.setOnApplyWindowInsetsListener(setWallpaper) { v, insets ->
             val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
             v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
@@ -268,7 +284,13 @@ class MainActivity : AppCompatActivity() {
             insets
         }
 
-        listOf(cropImageButton, openFileExplorer, setWallpaper).forEach { button ->
+        listOf(
+            cropImageButton,
+            openFileExplorer,
+            setWallpaper,
+            openAlbumButton,
+            openSettingsButton
+        ).forEach { button ->
             val xmlMarginTopRecord = button.marginTop
             val xmlMarginBottomRecord = button.marginBottom
             ViewCompat.setOnApplyWindowInsetsListener(button) { v, insets ->
