@@ -28,6 +28,7 @@ import androidx.core.view.updateLayoutParams
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
+import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
@@ -62,6 +63,10 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
+
+    private lateinit var historyDialog: BottomSheetDialog
+    private lateinit var historyLayout: View
+    private lateinit var historyRecyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -108,6 +113,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         Logger.logDebug(Tags.Lifecycle, "onDestroy")
         dialog.dismiss()
+        historyDialog.dismiss()
         if (isFinishing) {
             pickMediaLauncher.unregister()
         }
@@ -214,8 +220,14 @@ class MainActivity : AppCompatActivity() {
 
         dialog = BottomSheetDialog(this)
         setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
-
         dialog.setContentView(setWallpaperLayout)
+
+        historyDialog = BottomSheetDialog(this)
+        historyLayout = layoutInflater.inflate(R.layout.history_bottom_sheet, null)
+        historyDialog.setContentView(historyLayout)
+
+        historyRecyclerView = historyLayout.findViewById(R.id.historyRecyclerView)
+        historyRecyclerView.adapter = HistoryAdapter(30) // 15 placeholders for now
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
@@ -268,7 +280,10 @@ class MainActivity : AppCompatActivity() {
 
         openAlbumButton.setOnClickListener {
             Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
-            // TODO: Implement album logic
+            historyDialog.show()
+            if (isTablet()) {
+                historyDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            }
         }
 
         openSettingsButton.setOnClickListener {

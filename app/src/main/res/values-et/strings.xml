@@ -11,4 +11,5 @@
     <string name="toast_notification">Taustapilt rakendatud!</string>
     <string name="settings_button_description">Seaded</string>
     <string name="album_button_description">Album</string>
+    <string name="history_title">Taustapildi ajalugu</string>
 </resources>
