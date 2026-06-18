@@ -29,6 +29,7 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import coil.load
+import coil.request.CachePolicy
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
@@ -37,6 +38,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
+import com.makardr.wallpapercrop.activities.wallpaper_gallery.WallpaperGalleryActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
 import kotlinx.coroutines.delay
@@ -229,7 +231,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
-        openAlbumButton = findViewById(R.id.openAlbum)
+        openAlbumButton = findViewById(R.id.openGallery)
         openSettingsButton = findViewById(R.id.openSettings)
 
         setWallpaperSystem.setOnClickListener {
@@ -267,8 +269,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         openAlbumButton.setOnClickListener {
-            Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
-            // TODO: Implement album logic
+            startActivity(Intent(this, WallpaperGalleryActivity::class.java))
         }
 
         openSettingsButton.setOnClickListener {
@@ -327,6 +328,8 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.Uri, "Refreshing preview image: $uri")
             wallpaperPreview.load(uri) {
                 crossfade(true)
+                memoryCachePolicy(CachePolicy.DISABLED)
+                diskCachePolicy(CachePolicy.DISABLED)
             }
             enableInterface()
         }
@@ -349,10 +352,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exitToTheMainScreen() {
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        startActivity(intent)
+        moveTaskToBack(true)
     }
 }

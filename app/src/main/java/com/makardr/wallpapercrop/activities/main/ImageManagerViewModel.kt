@@ -11,6 +11,7 @@ import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
+import com.makardr.wallpapercrop.data.ImageRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -28,6 +29,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     private var imageOriginUri: Uri? = null
     private var imageIsCropped = false
     private var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
+    private var imageRepository: ImageRepository = ImageRepository(context)
 
     private fun notifyImageUpdated() {
         Logger.logDebug(
@@ -95,6 +97,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
                         context.contentResolver.openInputStream(uri)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
+                        imageRepository.saveImage(uri)
                         Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
                     }
                 }

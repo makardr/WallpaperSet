@@ -7,11 +7,18 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.makardr.wallpapercrop.R
+import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.ImageRepository
 
 class WallpaperGalleryActivity : AppCompatActivity() {
+    private lateinit var imageRepository: ImageRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        Logger.logInfo(Tags.Lifecycle, "onCreate WallpaperGalleryActivity")
+        imageRepository = ImageRepository(this)
         setupInterface()
 
     }
