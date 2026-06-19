@@ -10,5 +10,6 @@ enum class Tags {
     DimensionCrop,
     Lifecycle,
     AppState,
-    FileSystem
+    FileSystem,
+    Preferences
 }

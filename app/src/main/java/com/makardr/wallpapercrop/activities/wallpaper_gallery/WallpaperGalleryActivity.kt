@@ -18,7 +18,7 @@ class WallpaperGalleryActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(Tags.Lifecycle, "onCreate WallpaperGalleryActivity")
-        imageRepository = ImageRepository(this)
+        imageRepository = ImageRepository.getInstance(this)
         setupInterface()
 
     }

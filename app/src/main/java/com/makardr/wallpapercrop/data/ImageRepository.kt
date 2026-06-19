@@ -4,33 +4,41 @@ import android.content.Context
 import android.net.Uri
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
 
-class ImageRepository(private val context: Context) {
+class ImageRepository private constructor(context: Context) {
+    private val appContext = context.applicationContext
     private val folderName = "images"
     private val imageDir = File(context.filesDir, folderName)
+    private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun saveImage(uri: Uri) {
-        val guid = UUID.randomUUID().toString()
-        val fileName = "${guid}.png"
+        repositoryScope.launch {
+            val guid = UUID.randomUUID().toString()
+            val fileName = "${guid}.png"
 
-        Logger.logInfo(Tags.FileSystem, "Saving image to $fileName")
-        val input = context.contentResolver.openInputStream(uri)
-            ?: throw IOException("Unable to open input stream for $uri")
+            Logger.logInfo(Tags.FileSystem, "Saving image to $fileName")
+            val input = appContext.contentResolver.openInputStream(uri)
+                ?: throw IOException("Unable to open input stream for $uri")
 
-        //Create images folder if it doesn't exist
-        val imagesDir = imageDir.apply { mkdirs() }
-        val outputFile = File(imagesDir, fileName)
+            //Create images folder if it does not exist
+            val imagesDir = imageDir.apply { mkdirs() }
+            val outputFile = File(imagesDir, fileName)
 
-        input.use { stream ->
-            FileOutputStream(outputFile).use { output ->
-                stream.copyTo(output)
+            input.use { stream ->
+                FileOutputStream(outputFile).use { output ->
+                    stream.copyTo(output)
+                }
             }
+            printAllFiles()
         }
-        printAllFiles()
     }
 
     fun listSavedImages(): List<File> {
@@ -46,38 +54,59 @@ class ImageRepository(private val context: Context) {
     }
 
     fun printAllFiles() {
-        context.filesDir.walkTopDown().forEach { file ->
-            val relativePath = file.relativeTo(context.filesDir).path
-            if (file.isDirectory) {
-                Logger.logDebug(Tags.FileSystem, "[DIR] ${file.relativeTo(context.filesDir).path}")
-            } else {
-                Logger.logDebug(Tags.FileSystem, relativePath)
+        repositoryScope.launch {
+            appContext.filesDir.walkTopDown().forEach { file ->
+                val relativePath = file.relativeTo(appContext.filesDir).path
+                if (file.isDirectory) {
+                    Logger.logDebug(
+                        Tags.FileSystem,
+                        "[DIR] ${file.relativeTo(appContext.filesDir).path}"
+                    )
+                } else {
+                    Logger.logDebug(Tags.FileSystem, relativePath)
+                }
             }
         }
     }
 
 
     fun deleteImage(fileName: String) {
-        val file = File(imageDir, fileName)
-        if (file.exists()) {
-            val deleted = file.delete()
-            if (deleted){
-                Logger.logInfo(Tags.FileSystem, "File deleted: $fileName")
-            }else{
-                Logger.logError(Tags.FileSystem, "Failed to delete file: $fileName")
+        repositoryScope.launch {
+            val file = File(imageDir, fileName)
+            if (file.exists()) {
+                val deleted = file.delete()
+                if (deleted) {
+                    Logger.logInfo(Tags.FileSystem, "File deleted: $fileName")
+                } else {
+                    Logger.logError(Tags.FileSystem, "Failed to delete file: $fileName")
+                }
+            } else {
+                Logger.logError(Tags.FileSystem, "File not found: $fileName")
             }
-        } else {
-            Logger.logError(Tags.FileSystem, "File not found: $fileName")
         }
+
     }
 
-    fun deleteAllFiles(){
-        val imagesDir = File(context.filesDir, "images")
-        if (imagesDir.deleteRecursively()){
-            Logger.logInfo(Tags.FileSystem, "Deleted all files")
-        }else{
-            Logger.logInfo(Tags.FileSystem, "Failed to delete all files")
+    fun deleteAllFiles() {
+        repositoryScope.launch {
+            val imagesDir = File(appContext.filesDir, "images")
+            if (imagesDir.deleteRecursively()) {
+                Logger.logInfo(Tags.FileSystem, "Deleted all files")
+            } else {
+                Logger.logInfo(Tags.FileSystem, "Failed to delete all files")
+            }
         }
+
     }
 
+    companion object {
+        @Volatile
+        private var INSTANCE: ImageRepository? = null
+
+        fun getInstance(context: Context): ImageRepository {
+            return INSTANCE ?: synchronized(this) {
+                INSTANCE ?: ImageRepository(context).also { INSTANCE = it }
+            }
+        }
+    }
 }

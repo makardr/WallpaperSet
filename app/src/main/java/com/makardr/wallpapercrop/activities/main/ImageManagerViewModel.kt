@@ -29,7 +29,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     private var imageOriginUri: Uri? = null
     private var imageIsCropped = false
     private var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
-    private var imageRepository: ImageRepository = ImageRepository(context)
+    private var imageRepository: ImageRepository = ImageRepository.getInstance(context)
 
     private fun notifyImageUpdated() {
         Logger.logDebug(

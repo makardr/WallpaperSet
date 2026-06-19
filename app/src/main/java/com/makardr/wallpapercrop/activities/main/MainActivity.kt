@@ -41,6 +41,7 @@ import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.activities.wallpaper_gallery.WallpaperGalleryActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -50,6 +51,7 @@ class MainActivity : AppCompatActivity() {
 
     private val imageManager: ImageManagerViewModel by viewModels()
     private lateinit var uCropActivity: UCropActivity
+    private lateinit var preferencesRepository: PreferencesRepository
 
     //Interface elements
     private lateinit var wallpaperPreview: ImageView
@@ -59,7 +61,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaper: MaterialButton
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
-    private lateinit var openAlbumButton: ImageButton
+    private lateinit var openGalleryButton: ImageButton
     private lateinit var openSettingsButton: ImageButton
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
@@ -68,6 +70,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(Tags.Lifecycle, "onCreate")
+        preferencesRepository = PreferencesRepository.getInstance(this)
         setupInterface()
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
@@ -231,7 +234,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
-        openAlbumButton = findViewById(R.id.openGallery)
+        openGalleryButton = findViewById(R.id.openGallery)
         openSettingsButton = findViewById(R.id.openSettings)
 
         setWallpaperSystem.setOnClickListener {
@@ -268,13 +271,16 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        openAlbumButton.setOnClickListener {
+        openGalleryButton.setOnClickListener {
             startActivity(Intent(this, WallpaperGalleryActivity::class.java))
         }
 
+
+
         openSettingsButton.setOnClickListener {
-            Logger.logInfo(Tags.Lifecycle, "Open Settings button pressed")
-            // TODO: Implement settings logic
+            Logger.logInfo(Tags.Preferences, "Settings button pressed")
+            Logger.logInfo(Tags.Preferences, "Gallery enabled: ${preferencesRepository.galleryEnabled}")
+            preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(setWallpaper) { v, insets ->
@@ -289,7 +295,7 @@ class MainActivity : AppCompatActivity() {
             cropImageButton,
             openFileExplorer,
             setWallpaper,
-            openAlbumButton,
+            openGalleryButton,
             openSettingsButton
         ).forEach { button ->
             val xmlMarginTopRecord = button.marginTop
