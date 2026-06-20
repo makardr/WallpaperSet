@@ -9,6 +9,7 @@ enum class Tags {
     SetupInterface,
     DimensionCrop,
     Lifecycle,
-    SavedState,
-    AppState
+    AppState,
+    FileSystem,
+    Preferences
 }

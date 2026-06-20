@@ -12,4 +12,5 @@
     <string name="settings_button_description">Settings</string>
     <string name="album_button_description">Album</string>
     <string name="history_title">Wallpaper History</string>
+    <string name="gallery_button_description">Gallery</string>
 </resources>

@@ -30,6 +30,7 @@ import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
+import coil.request.CachePolicy
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
@@ -38,8 +39,10 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
+import com.makardr.wallpapercrop.activities.wallpaper_gallery.WallpaperGalleryActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -49,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private val imageManager: ImageManagerViewModel by viewModels()
     private lateinit var uCropActivity: UCropActivity
+    private lateinit var preferencesRepository: PreferencesRepository
 
     //Interface elements
     private lateinit var wallpaperPreview: ImageView
@@ -58,7 +62,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaper: MaterialButton
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
-    private lateinit var openAlbumButton: ImageButton
+    private lateinit var openGalleryButton: ImageButton
     private lateinit var openSettingsButton: ImageButton
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
@@ -71,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(Tags.Lifecycle, "onCreate")
+        preferencesRepository = PreferencesRepository.getInstance(this)
         setupInterface()
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
@@ -220,6 +225,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog = BottomSheetDialog(this)
         setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
+
         dialog.setContentView(setWallpaperLayout)
 
         historyDialog = BottomSheetDialog(this)
@@ -241,7 +247,7 @@ class MainActivity : AppCompatActivity() {
 
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
-        openAlbumButton = findViewById(R.id.openAlbum)
+        openGalleryButton = findViewById(R.id.openGallery)
         openSettingsButton = findViewById(R.id.openSettings)
 
         setWallpaperSystem.setOnClickListener {
@@ -278,7 +284,7 @@ class MainActivity : AppCompatActivity() {
             )
         }
 
-        openAlbumButton.setOnClickListener {
+        openGalleryButton.setOnClickListener {
             Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
             historyDialog.show()
             if (isTablet()) {
@@ -303,7 +309,7 @@ class MainActivity : AppCompatActivity() {
             cropImageButton,
             openFileExplorer,
             setWallpaper,
-            openAlbumButton,
+            openGalleryButton,
             openSettingsButton
         ).forEach { button ->
             val xmlMarginTopRecord = button.marginTop
@@ -342,6 +348,8 @@ class MainActivity : AppCompatActivity() {
             Logger.logInfo(Tags.Uri, "Refreshing preview image: $uri")
             wallpaperPreview.load(uri) {
                 crossfade(true)
+                memoryCachePolicy(CachePolicy.DISABLED)
+                diskCachePolicy(CachePolicy.DISABLED)
             }
             enableInterface()
         }
@@ -364,10 +372,6 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun exitToTheMainScreen() {
-        val intent = Intent(Intent.ACTION_MAIN).apply {
-            addCategory(Intent.CATEGORY_HOME)
-            flags = Intent.FLAG_ACTIVITY_NEW_TASK
-        }
-        startActivity(intent)
+        moveTaskToBack(true)
     }
 }

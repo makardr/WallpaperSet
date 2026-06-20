@@ -8,10 +8,14 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.PreferencesRepository
 
 class SettingsActivity : AppCompatActivity() {
+    private lateinit var preferencesRepository: PreferencesRepository
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        preferencesRepository = PreferencesRepository.getInstance(this)
         setupInterface()
     }
 

@@ -12,4 +12,5 @@
     <string name="settings_button_description">Seaded</string>
     <string name="album_button_description">Album</string>
     <string name="history_title">Taustapildi ajalugu</string>
+    <string name="gallery_button_description">Album</string>
 </resources>

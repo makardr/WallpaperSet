@@ -46,11 +46,11 @@
             app:tint="@android:color/white" />
 
         <ImageButton
-            android:id="@+id/openAlbum"
+            android:id="@+id/openGallery"
             style="@style/ImgButton"
             android:layout_marginStart="0dp"
-            android:contentDescription="@string/album_button_description"
-            android:src="@drawable/reset_image"
+            android:contentDescription="@string/gallery_button_description"
+            android:src="@drawable/gallery_image_button"
             android:scaleType="fitCenter"
             android:padding="5dp"/>
     </LinearLayout>
