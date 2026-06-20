@@ -39,9 +39,9 @@ import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
-import com.makardr.wallpapercrop.activities.wallpaper_gallery.WallpaperGalleryActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.ImageRepository
 import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -52,6 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     private val imageManager: ImageManagerViewModel by viewModels()
     private lateinit var uCropActivity: UCropActivity
+    private lateinit var imageRepository: ImageRepository
     private lateinit var preferencesRepository: PreferencesRepository
 
     //Interface elements
@@ -68,14 +69,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
 
-    private lateinit var historyDialog: BottomSheetDialog
-    private lateinit var historyLayout: View
-    private lateinit var historyRecyclerView: RecyclerView
+    private lateinit var galleryDialog: BottomSheetDialog
+    private lateinit var galleryLayout: View
+    private lateinit var galleryRecyclerView: RecyclerView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(Tags.Lifecycle, "onCreate")
         preferencesRepository = PreferencesRepository.getInstance(this)
+        imageRepository = ImageRepository.getInstance(this)
         setupInterface()
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
@@ -118,7 +120,7 @@ class MainActivity : AppCompatActivity() {
         super.onDestroy()
         Logger.logDebug(Tags.Lifecycle, "onDestroy")
         dialog.dismiss()
-        historyDialog.dismiss()
+        galleryDialog.dismiss()
         if (isFinishing) {
             pickMediaLauncher.unregister()
         }
@@ -228,12 +230,13 @@ class MainActivity : AppCompatActivity() {
 
         dialog.setContentView(setWallpaperLayout)
 
-        historyDialog = BottomSheetDialog(this)
-        historyLayout = layoutInflater.inflate(R.layout.history_bottom_sheet, null)
-        historyDialog.setContentView(historyLayout)
+        galleryDialog = BottomSheetDialog(this)
+        galleryLayout = layoutInflater.inflate(R.layout.history_bottom_sheet, null)
+        galleryDialog.setContentView(galleryLayout)
 
-        historyRecyclerView = historyLayout.findViewById(R.id.historyRecyclerView)
-        historyRecyclerView.adapter = HistoryAdapter(30) // 15 placeholders for now
+        galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
+        galleryRecyclerView.adapter =
+            GalleryAdapter(30, imageManager, imageRepository)
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
@@ -286,9 +289,9 @@ class MainActivity : AppCompatActivity() {
 
         openGalleryButton.setOnClickListener {
             Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
-            historyDialog.show()
+            galleryDialog.show()
             if (isTablet()) {
-                historyDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                galleryDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
 

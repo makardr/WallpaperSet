@@ -47,7 +47,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    //Used exclusively to crop only the original shared image
+    //Used exclusively to crop only the original shared image, should not be used otherwise
     fun getOriginUri(): Uri? {
         return imageOriginUri
     }

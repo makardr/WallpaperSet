@@ -89,8 +89,7 @@ class ImageRepository private constructor(context: Context) {
 
     fun deleteAllFiles() {
         repositoryScope.launch {
-            val imagesDir = File(appContext.filesDir, "images")
-            if (imagesDir.deleteRecursively()) {
+            if (imageDir.deleteRecursively()) {
                 Logger.logInfo(Tags.FileSystem, "Deleted all files")
             } else {
                 Logger.logInfo(Tags.FileSystem, "Failed to delete all files")

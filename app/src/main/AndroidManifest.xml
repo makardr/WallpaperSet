@@ -42,10 +42,6 @@
             android:exported="false"
             android:theme="@style/Theme.AppCompat.Light.NoActionBar" />
         <activity
-            android:name=".activities.wallpaper_gallery.WallpaperGalleryActivity"
-            android:exported="false"
-            android:windowSoftInputMode="adjustResize" />
-        <activity
             android:name=".activities.settings.SettingsActivity"
             android:exported="false"
             android:windowSoftInputMode="adjustResize" />

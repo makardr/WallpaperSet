@@ -10,7 +10,6 @@
     <string name="set_wallpaper_both_option">Рабочий стол и экран блокировки</string>
     <string name="toast_notification">Обои применены!</string>
     <string name="settings_button_description">Настройки</string>
-    <string name="album_button_description">Альбом</string>
-    <string name="history_title">История обоев</string>
+    <string name="gallery_title">Галлерея обоев</string>
     <string name="gallery_button_description">Галлерея</string>
 </resources>
