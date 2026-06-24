@@ -15,6 +15,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
+
 class GalleryAdapter(
     private val imageManager: ImageManagerViewModel,
     private val imageRepository: ImageRepository,
