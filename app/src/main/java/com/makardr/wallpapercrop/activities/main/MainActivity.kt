@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var galleryDialog: BottomSheetDialog
     private lateinit var galleryLayout: View
     private lateinit var galleryRecyclerView: RecyclerView
+    private lateinit var galleryAdapter: GalleryAdapter
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -235,8 +236,10 @@ class MainActivity : AppCompatActivity() {
         galleryDialog.setContentView(galleryLayout)
 
         galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
-        galleryRecyclerView.adapter =
-            GalleryAdapter(30, imageManager, imageRepository)
+        galleryAdapter = GalleryAdapter(imageManager, imageRepository) {
+            galleryDialog.dismiss()
+        }
+        galleryRecyclerView.adapter = galleryAdapter
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
@@ -289,6 +292,7 @@ class MainActivity : AppCompatActivity() {
 
         openGalleryButton.setOnClickListener {
             Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
+            galleryAdapter.refresh()
             galleryDialog.show()
             if (isTablet()) {
                 galleryDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED

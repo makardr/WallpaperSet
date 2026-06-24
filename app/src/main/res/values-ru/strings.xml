@@ -12,4 +12,5 @@
     <string name="settings_button_description">Настройки</string>
     <string name="gallery_title">Галлерея обоев</string>
     <string name="gallery_button_description">Галлерея</string>
+    <string name="wallpaper_thumbnail">Миниатюра обоев</string>
 </resources>

@@ -12,4 +12,5 @@
     <string name="settings_button_description">Settings</string>
     <string name="gallery_title">Wallpaper Gallery</string>
     <string name="gallery_button_description">Gallery</string>
+    <string name="wallpaper_thumbnail">Wallpaper thumbnail</string>
 </resources>

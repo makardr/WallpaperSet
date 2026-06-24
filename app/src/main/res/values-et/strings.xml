@@ -12,4 +12,5 @@
     <string name="settings_button_description">Seaded</string>
     <string name="gallery_title">Taustapildi album</string>
     <string name="gallery_button_description">Album</string>
+    <string name="wallpaper_thumbnail">Taustapildi pisipilt</string>
 </resources>
