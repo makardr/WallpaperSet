@@ -1,10 +1,12 @@
 package com.makardr.wallpapercrop.activities.main
 
+import android.app.AlertDialog
 import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.PopupMenu
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.makardr.wallpapercrop.R
@@ -59,6 +61,30 @@ class GalleryAdapter(
             imageManager.updateOriginUri(uri)
             onImageSelected()
         }
+        holder.itemView.setOnLongClickListener {
+//            AlertDialog.Builder(holder.itemView.context)
+//                .setTitle("Delete image")
+//                .setMessage("Remove this image from your gallery?")
+//                .setPositiveButton("Delete") { _, _ -> deleteFile(uri) }
+//                .setNegativeButton("Cancel", null)
+//                .show()
+//            true
+            val popup = PopupMenu(holder.itemView.context, holder.itemView)
+            popup.menu.add("Delete")
+            popup.setOnMenuItemClickListener { item ->
+                when (item.title) {
+                    "Delete" -> onImageDelete(uri)
+                }
+                true
+            }
+            popup.show()
+            true
+        }
+    }
+
+    private fun onImageDelete(uri: Uri){
+        imageRepository.deleteImage(listOf(uri))
+        refresh()
     }
 
     override fun getItemCount(): Int = images.size

@@ -301,7 +301,7 @@ class MainActivity : AppCompatActivity() {
 
         openSettingsButton.setOnClickListener {
             Logger.logInfo(Tags.Lifecycle, "Open Settings button pressed")
-            // TODO: Implement settings logic
+            preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(setWallpaper) { v, insets ->
@@ -332,6 +332,11 @@ class MainActivity : AppCompatActivity() {
         }
 
         disableInterface()
+        if (preferencesRepository.galleryEnabled){
+            openGalleryButton.visibility = View.VISIBLE
+        } else {
+            openGalleryButton.visibility = View.INVISIBLE
+        }
     }
 
     private fun enableInterface() {

@@ -1,5 +1,6 @@
 package com.makardr.wallpapercrop.data
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
 import com.makardr.wallpapercrop.common.Tags
@@ -23,8 +24,6 @@ class ImageRepository private constructor(context: Context) {
         repositoryScope.launch {
             val guid = UUID.randomUUID().toString()
             val fileName = "${guid}.png"
-
-            Logger.logInfo(Tags.FileSystem, "Saving image to $fileName")
             val input = appContext.contentResolver.openInputStream(uri)
                 ?: throw IOException("Unable to open input stream for $uri")
 
@@ -37,7 +36,7 @@ class ImageRepository private constructor(context: Context) {
                     stream.copyTo(output)
                 }
             }
-            printAllFiles()
+            Logger.logInfo(Tags.FileSystem, "Image saved to $fileName")
         }
     }
 
@@ -70,21 +69,27 @@ class ImageRepository private constructor(context: Context) {
     }
 
 
-    fun deleteImage(fileName: String) {
+    fun deleteImage(uriList: List<Uri>) {
         repositoryScope.launch {
-            val file = File(imageDir, fileName)
-            if (file.exists()) {
-                val deleted = file.delete()
-                if (deleted) {
-                    Logger.logInfo(Tags.FileSystem, "File deleted: $fileName")
-                } else {
-                    Logger.logError(Tags.FileSystem, "Failed to delete file: $fileName")
+            for (uri in uriList) {
+                val deleted = when (uri.scheme) {
+                    ContentResolver.SCHEME_CONTENT ->
+                        appContext.contentResolver.delete(uri, null, null) > 0
+                    ContentResolver.SCHEME_FILE ->
+                        uri.path?.let { File(it).delete() } ?: false
+                    else -> {
+                        Logger.logError(Tags.FileSystem, "Unsupported URI scheme: $uri")
+                        continue
+                    }
                 }
-            } else {
-                Logger.logError(Tags.FileSystem, "File not found: $fileName")
+
+                if (deleted) {
+                    Logger.logInfo(Tags.FileSystem, "File deleted: $uri")
+                } else {
+                    Logger.logError(Tags.FileSystem, "Failed to delete file: $uri")
+                }
             }
         }
-
     }
 
     fun deleteAllFiles() {
