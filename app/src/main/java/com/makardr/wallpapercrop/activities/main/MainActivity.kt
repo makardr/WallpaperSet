@@ -38,6 +38,10 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
 import com.makardr.wallpapercrop.R
+import com.makardr.wallpapercrop.activities.main.components.GalleryAdapter
+import com.makardr.wallpapercrop.activities.main.viewmodels.GalleryAdapterViewModel
+import com.makardr.wallpapercrop.activities.main.viewmodels.ImageManagerViewModel
+import com.makardr.wallpapercrop.activities.settings.SettingsActivity
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
@@ -51,6 +55,8 @@ import kotlin.time.Duration.Companion.milliseconds
 class MainActivity : AppCompatActivity() {
 
     private val imageManager: ImageManagerViewModel by viewModels()
+    private val galleryAdapterViewModel: GalleryAdapterViewModel by viewModels()
+
     private lateinit var uCropActivity: UCropActivity
     private lateinit var imageRepository: ImageRepository
     private lateinit var preferencesRepository: PreferencesRepository
@@ -64,7 +70,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cropImageButton: ImageButton
     private lateinit var openFileExplorer: ImageButton
     private lateinit var openGalleryButton: ImageButton
-    private lateinit var openSettingsButton: ImageButton
+    private lateinit var openPreferencesButton: ImageButton
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
@@ -73,6 +79,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var galleryLayout: View
     private lateinit var galleryRecyclerView: RecyclerView
     private lateinit var galleryAdapter: GalleryAdapter
+    private lateinit var galleryDeleteButton: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -137,6 +144,7 @@ class MainActivity : AppCompatActivity() {
         super.onResume()
         Logger.logDebug(Tags.Lifecycle, "onResume")
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
+        galleryAdapterViewModel.refreshGallery()
         // Activity is in foreground and interactive
         // Register listeners, start camera, resume animations
     }
@@ -220,25 +228,53 @@ class MainActivity : AppCompatActivity() {
 
     @SuppressLint("InflateParams")
     private fun setupInterface() {
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.main_activity)
         if (!isTablet()) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
         }
         enableEdgeToEdge()
 
         dialog = BottomSheetDialog(this)
-        setWallpaperLayout = layoutInflater.inflate(R.layout.set_wallpaper_bottom_sheet, null)
+        setWallpaperLayout = layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
 
         dialog.setContentView(setWallpaperLayout)
 
         galleryDialog = BottomSheetDialog(this)
-        galleryLayout = layoutInflater.inflate(R.layout.history_bottom_sheet, null)
+        galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
 
         galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
-        galleryAdapter = GalleryAdapter(imageManager, imageRepository) {
-            galleryDialog.dismiss()
+        galleryAdapter = GalleryAdapter(
+            { uri ->
+                imageManager.updateOriginUri(uri)
+                galleryDialog.dismiss()
+            },
+            { uri ->
+                galleryAdapterViewModel.addSelectedImage(uri)
+                Logger.logInfo(Tags.Gallery, "Selected image: $uri")
+            })
+
+        galleryAdapterViewModel.galleryImages.observe(this) { uriList ->
+            galleryAdapter.images = uriList
         }
+
+
+        galleryDialog.setOnDismissListener {
+            galleryAdapterViewModel.clearSelectedImagesList()
+        }
+
+        galleryDeleteButton = galleryLayout.findViewById(R.id.deleteButton)
+        galleryDeleteButton.setOnClickListener {
+            Logger.logInfo(Tags.UserInteraction, "Delete button pressed")
+            lifecycleScope.launch {
+                if (galleryAdapterViewModel.deleteSelectedImages()) {
+                    sendToast(getString(R.string.toast_delete_success))
+                } else {
+                    sendToast(getString(R.string.toast_delete_failure))
+                }
+            }
+        }
+
         galleryRecyclerView.adapter = galleryAdapter
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
@@ -254,20 +290,20 @@ class MainActivity : AppCompatActivity() {
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
         openGalleryButton = findViewById(R.id.openGallery)
-        openSettingsButton = findViewById(R.id.openSettings)
+        openPreferencesButton = findViewById(R.id.preferencesButton)
 
         setWallpaperSystem.setOnClickListener {
-            Logger.logInfo(Tags.SetWallpaper, "setWallpaperSystem button pressed")
+            Logger.logInfo(Tags.UserInteraction, "setWallpaperSystem button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
         setWallpaperLock.setOnClickListener {
-            Logger.logInfo(Tags.SetWallpaper, "setWallpaperLock button pressed")
+            Logger.logInfo(Tags.UserInteraction, "setWallpaperLock button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaperAll.setOnClickListener {
-            Logger.logInfo(Tags.SetWallpaper, "setWallpaperAll button pressed")
+            Logger.logInfo(Tags.UserInteraction, "setWallpaperAll button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
         }
 
@@ -291,17 +327,16 @@ class MainActivity : AppCompatActivity() {
         }
 
         openGalleryButton.setOnClickListener {
-            Logger.logInfo(Tags.Lifecycle, "Open Album button pressed")
-            galleryAdapter.refresh()
+            Logger.logInfo(Tags.UserInteraction, "Open Album button pressed")
             galleryDialog.show()
             if (isTablet()) {
                 galleryDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
 
-        openSettingsButton.setOnClickListener {
-            Logger.logInfo(Tags.Lifecycle, "Open Settings button pressed")
-            preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
+        openPreferencesButton.setOnClickListener {
+            Logger.logInfo(Tags.UserInteraction, "Open Settings button pressed")
+            startActivity(Intent(this, SettingsActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(setWallpaper) { v, insets ->
@@ -317,7 +352,7 @@ class MainActivity : AppCompatActivity() {
             openFileExplorer,
             setWallpaper,
             openGalleryButton,
-            openSettingsButton
+            openPreferencesButton
         ).forEach { button ->
             val xmlMarginTopRecord = button.marginTop
             val xmlMarginBottomRecord = button.marginBottom
@@ -332,7 +367,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         disableInterface()
-        if (preferencesRepository.galleryEnabled){
+        if (preferencesRepository.galleryEnabled) {
             openGalleryButton.visibility = View.VISIBLE
         } else {
             openGalleryButton.visibility = View.INVISIBLE
@@ -372,11 +407,7 @@ class MainActivity : AppCompatActivity() {
         dialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
-            Toast.makeText(
-                this@MainActivity,
-                getString(R.string.toast_notification),
-                Toast.LENGTH_SHORT
-            ).show()
+            sendToast(getString(R.string.toast_wallpaper_applied))
             delay(1000.milliseconds)
             Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
@@ -385,5 +416,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun exitToTheMainScreen() {
         moveTaskToBack(true)
+    }
+
+    private fun sendToast(message: String) {
+        Toast.makeText(
+            this@MainActivity,
+            message,
+            Toast.LENGTH_SHORT
+        ).show()
     }
 }

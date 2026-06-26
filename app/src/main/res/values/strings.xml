@@ -8,9 +8,12 @@
     <string name="set_wallpaper_home_option">Home screen</string>
     <string name="set_wallpaper_lockscreen_option">Lock screen</string>
     <string name="set_wallpaper_both_option">Home and lock screen</string>
-    <string name="toast_notification">Wallpaper applied!</string>
+    <string name="toast_wallpaper_applied">Wallpaper applied!</string>
     <string name="settings_button_description">Settings</string>
     <string name="gallery_title">Wallpaper Gallery</string>
     <string name="gallery_button_description">Gallery</string>
     <string name="wallpaper_thumbnail">Wallpaper thumbnail</string>
+    <string name="delete_images">Delete images</string>
+    <string name="toast_delete_success">Delete success</string>
+    <string name="toast_delete_failure">Delete failure</string>
 </resources>

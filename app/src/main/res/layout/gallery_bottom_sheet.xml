@@ -25,18 +25,18 @@
             android:layout_height="wrap_content"
             android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
-            android:layout_toStartOf="@id/deleteIcon"
+            android:layout_toStartOf="@id/deleteButton"
             android:text="@string/gallery_title"
             android:textSize="22sp"
             android:textStyle="bold" />
 
         <ImageView
-            android:id="@+id/deleteIcon"
+            android:id="@+id/deleteButton"
             android:layout_width="24dp"
             android:layout_height="24dp"
             android:layout_alignParentEnd="true"
             android:layout_centerVertical="true"
-            android:contentDescription="@null"
+            android:contentDescription="@string/delete_images"
             android:src="@drawable/ic_delete"
             app:tint="?attr/colorControlNormal" />
     </RelativeLayout>

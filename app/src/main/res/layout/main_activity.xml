@@ -56,7 +56,7 @@
     </LinearLayout>
 
     <ImageButton
-        android:id="@+id/openSettings"
+        android:id="@+id/preferencesButton"
         style="@style/ImgButton"
         android:layout_gravity="top|end"
         android:contentDescription="@string/settings_button_description"

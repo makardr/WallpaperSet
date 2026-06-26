@@ -3,7 +3,7 @@ package com.makardr.wallpapercrop.common.utils
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
-import com.makardr.wallpapercrop.activities.main.ImageManagerViewModel
+import com.makardr.wallpapercrop.activities.main.viewmodels.ImageManagerViewModel
 import com.makardr.wallpapercrop.common.Tags
 
 object Logger {

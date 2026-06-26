@@ -6,7 +6,7 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
-import com.makardr.wallpapercrop.activities.main.ImageManagerViewModel
+import com.makardr.wallpapercrop.activities.main.viewmodels.ImageManagerViewModel
 import com.makardr.wallpapercrop.common.AppConstants
 import com.makardr.wallpapercrop.common.Tags
 import com.makardr.wallpapercrop.common.utils.Logger

@@ -11,5 +11,8 @@ enum class Tags {
     Lifecycle,
     AppState,
     FileSystem,
-    Preferences
+    Preferences,
+    Gallery,
+    GalleryAdapterViewModel,
+    UserInteraction
 }

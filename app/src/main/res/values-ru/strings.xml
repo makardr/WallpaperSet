@@ -8,9 +8,12 @@
     <string name="set_wallpaper_home_option">Рабочий стол</string>
     <string name="set_wallpaper_lockscreen_option">Экран блокировки</string>
     <string name="set_wallpaper_both_option">Рабочий стол и экран блокировки</string>
-    <string name="toast_notification">Обои применены!</string>
+    <string name="toast_wallpaper_applied">Обои применены!</string>
     <string name="settings_button_description">Настройки</string>
     <string name="gallery_title">Галлерея обоев</string>
     <string name="gallery_button_description">Галлерея</string>
     <string name="wallpaper_thumbnail">Миниатюра обоев</string>
+    <string name="delete_images">Удалить изображение</string>
+    <string name="toast_delete_success">Успешно удалено</string>
+    <string name="toast_delete_failure">Не удалось удалить изображение</string>
 </resources>

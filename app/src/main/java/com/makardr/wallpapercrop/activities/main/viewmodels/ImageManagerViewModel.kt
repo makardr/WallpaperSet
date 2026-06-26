@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop.activities.main
+package com.makardr.wallpapercrop.activities.main.viewmodels
 
 import android.app.Application
 import android.app.WallpaperManager

@@ -9,6 +9,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -69,14 +70,17 @@ class ImageRepository private constructor(context: Context) {
     }
 
 
-    fun deleteImage(uriList: List<Uri>) {
-        repositoryScope.launch {
+    suspend fun deleteImages(uriList: MutableSet<Uri>): Boolean {
+        var failedToDelete = false
+        withContext(Dispatchers.IO) {
             for (uri in uriList) {
                 val deleted = when (uri.scheme) {
                     ContentResolver.SCHEME_CONTENT ->
                         appContext.contentResolver.delete(uri, null, null) > 0
+
                     ContentResolver.SCHEME_FILE ->
                         uri.path?.let { File(it).delete() } ?: false
+
                     else -> {
                         Logger.logError(Tags.FileSystem, "Unsupported URI scheme: $uri")
                         continue
@@ -87,13 +91,16 @@ class ImageRepository private constructor(context: Context) {
                     Logger.logInfo(Tags.FileSystem, "File deleted: $uri")
                 } else {
                     Logger.logError(Tags.FileSystem, "Failed to delete file: $uri")
+                    failedToDelete = true
                 }
             }
+
         }
+        return !failedToDelete
     }
 
-    fun deleteAllFiles() {
-        repositoryScope.launch {
+    suspend fun deleteAllFiles() {
+        withContext(Dispatchers.IO)  {
             if (imageDir.deleteRecursively()) {
                 Logger.logInfo(Tags.FileSystem, "Deleted all files")
             } else {
