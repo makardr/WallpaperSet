@@ -70,7 +70,7 @@ class ImageRepository private constructor(context: Context) {
     }
 
 
-    suspend fun deleteImages(uriList: MutableSet<Uri>): Boolean {
+    suspend fun deleteImages(uriList: Collection<Uri>): Boolean {
         var failedToDelete = false
         withContext(Dispatchers.IO) {
             for (uri in uriList) {

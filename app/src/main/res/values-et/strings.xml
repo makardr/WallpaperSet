@@ -16,4 +16,9 @@
     <string name="delete_images">Kustuta pilt</string>
     <string name="toast_delete_success">Kustutamine õnnestus</string>
     <string name="toast_delete_failure">Kustutamise ebaõnnestumine</string>
+    <string name="gallery_empty">Pilte ei leitud</string>
+    <string name="delete_dialog_title">Kustuta pildid</string>
+    <string name="delete_dialog_message">Kas olete kindel, et soovite valitud pildid kustutada?</string>
+    <string name="cancel">Tühista</string>
+    <string name="delete">Kustuta</string>
 </resources>

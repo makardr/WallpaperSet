@@ -16,4 +16,9 @@
     <string name="delete_images">Удалить изображение</string>
     <string name="toast_delete_success">Успешно удалено</string>
     <string name="toast_delete_failure">Не удалось удалить изображение</string>
+    <string name="gallery_empty">Изображений не найдено</string>
+    <string name="delete_dialog_title">Удалить изображения</string>
+    <string name="delete_dialog_message">Вы уверены, что хотите удалить выбранные изображения?</string>
+    <string name="cancel">Отмена</string>
+    <string name="delete">Удалить</string>
 </resources>

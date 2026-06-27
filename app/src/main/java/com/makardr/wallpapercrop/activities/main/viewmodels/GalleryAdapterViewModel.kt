@@ -15,12 +15,14 @@ import kotlinx.coroutines.withContext
 
 class GalleryAdapterViewModel(application: Application) : AndroidViewModel(application) {
     private val context = getApplication<Application>()
-    private var selectedImages: MutableSet<Uri> = mutableSetOf()
     private var imageRepository = ImageRepository.getInstance(context)
 
     //Adapter lifecycle
     private val _galleryImages = MutableLiveData<List<Uri>>()
     val galleryImages: LiveData<List<Uri>> = _galleryImages
+
+    private val _selectedImages = MutableLiveData<Set<Uri>>(emptySet())
+    val selectedImages: LiveData<Set<Uri>> = _selectedImages
 
     //Refresh contained images list inside adapter gallery
     fun refreshGallery() {
@@ -33,25 +35,32 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
 
     //Clear selected images list inside this
     fun clearSelectedImagesList() {
-        selectedImages.clear()
+        _selectedImages.value = emptySet()
     }
 
-    fun addSelectedImage(uri: Uri) {
-        if (!selectedImages.add(uri)) {
-            Logger.logInfo(Tags.GalleryAdapterViewModel, "Duplicate image skipped: $uri")
+    fun toggleSelection(uri: Uri) {
+        val current = _selectedImages.value?.toMutableSet() ?: mutableSetOf()
+        if (current.contains(uri)) {
+            current.remove(uri)
+            Logger.logInfo(Tags.GalleryAdapterViewModel, "Removed selected image: $uri")
         } else {
-            Logger.logInfo(Tags.GalleryAdapterViewModel, "Successfully added selected image: $uri")
+            current.add(uri)
+            Logger.logInfo(Tags.GalleryAdapterViewModel, "Added selected image: $uri")
         }
+        _selectedImages.value = current
     }
 
-    suspend fun deleteSelectedImages() : Boolean {
+    suspend fun deleteSelectedImages(): Boolean {
+        val imagesToDelete = _selectedImages.value ?: return true
+        if (imagesToDelete.isEmpty()) return true
+
         return withContext(Dispatchers.IO) {
-            val result = imageRepository.deleteImages(selectedImages)
-            clearSelectedImagesList()
-            refreshGallery()
+            val result = imageRepository.deleteImages(imagesToDelete)
+            withContext(Dispatchers.Main) {
+                clearSelectedImagesList()
+                refreshGallery()
+            }
             result
         }
     }
-
-
 }

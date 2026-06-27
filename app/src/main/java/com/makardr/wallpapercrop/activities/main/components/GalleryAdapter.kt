@@ -23,8 +23,16 @@ class GalleryAdapter(
             notifyDataSetChanged()
         }
 
+    var selectedUris: Set<Uri> = emptySet()
+        set(value) {
+            field = value
+            notifyDataSetChanged()
+        }
+
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val wallpaperThumbnail: ImageView = view.findViewById(R.id.wallpaperThumbnail)
+        val selectionOverlay: View = view.findViewById(R.id.selectionOverlay)
+        val checkIcon: ImageView = view.findViewById(R.id.checkIcon)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -35,10 +43,25 @@ class GalleryAdapter(
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
         val uri = images[position]
+        val isSelected = selectedUris.contains(uri)
+
         holder.wallpaperThumbnail.load(uri) {
             crossfade(true)
             placeholder(R.drawable.bg_placeholder)
         }
+
+        // Selection state UI
+        holder.selectionOverlay.visibility = if (isSelected) View.VISIBLE else View.GONE
+        holder.checkIcon.visibility = if (isSelected) View.VISIBLE else View.GONE
+
+        // Animation
+        val scale = if (isSelected) 0.9f else 1.0f
+        holder.wallpaperThumbnail.animate()
+            .scaleX(scale)
+            .scaleY(scale)
+            .setDuration(200)
+            .start()
+
         holder.itemView.setOnClickListener {
             onImageTap(uri)
         }

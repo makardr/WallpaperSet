@@ -37,6 +37,7 @@ import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.button.MaterialButton
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.activities.main.components.GalleryAdapter
 import com.makardr.wallpapercrop.activities.main.viewmodels.GalleryAdapterViewModel
@@ -242,20 +243,54 @@ class MainActivity : AppCompatActivity() {
         galleryDialog = BottomSheetDialog(this)
         galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
+        galleryDialog.setOnShowListener {
+            val bottomSheet = galleryDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            bottomSheet?.let {
+                val behavior = BottomSheetBehavior.from(it)
+                val displayMetrics = resources.displayMetrics
+                if (isTablet()) {
+                    it.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                    it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    (it.parent as? View)?.layoutParams?.let { parentParams ->
+                        parentParams.width = ViewGroup.LayoutParams.MATCH_PARENT
+                        parentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
+                    }
+                    behavior.maxWidth = displayMetrics.widthPixels
+                    behavior.peekHeight = displayMetrics.heightPixels
+                    galleryDialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    it.requestLayout()
+                } else {
+                    it.layoutParams.height = (displayMetrics.heightPixels * 0.75).toInt()
+                }
+                behavior.state = BottomSheetBehavior.STATE_EXPANDED
+                behavior.skipCollapsed = true
+            }
+        }
 
         galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
+        val emptyGalleryText: View = galleryLayout.findViewById(R.id.emptyGalleryText)
         galleryAdapter = GalleryAdapter(
             { uri ->
-                imageManager.updateOriginUri(uri)
-                galleryDialog.dismiss()
+                if (galleryAdapterViewModel.selectedImages.value.orEmpty().isNotEmpty()) {
+                    galleryAdapterViewModel.toggleSelection(uri)
+                } else {
+                    imageManager.updateOriginUri(uri)
+                    galleryDialog.dismiss()
+                }
             },
             { uri ->
-                galleryAdapterViewModel.addSelectedImage(uri)
+                galleryAdapterViewModel.toggleSelection(uri)
                 Logger.logInfo(Tags.Gallery, "Selected image: $uri")
             })
 
         galleryAdapterViewModel.galleryImages.observe(this) { uriList ->
             galleryAdapter.images = uriList
+            emptyGalleryText.visibility = if (uriList.isEmpty()) View.VISIBLE else View.GONE
+        }
+
+        galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
+            galleryAdapter.selectedUris = selectedSet
+            galleryDeleteButton.visibility = if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
 
@@ -266,13 +301,20 @@ class MainActivity : AppCompatActivity() {
         galleryDeleteButton = galleryLayout.findViewById(R.id.deleteButton)
         galleryDeleteButton.setOnClickListener {
             Logger.logInfo(Tags.UserInteraction, "Delete button pressed")
-            lifecycleScope.launch {
-                if (galleryAdapterViewModel.deleteSelectedImages()) {
-                    sendToast(getString(R.string.toast_delete_success))
-                } else {
-                    sendToast(getString(R.string.toast_delete_failure))
+            MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.delete_dialog_title)
+                .setMessage(R.string.delete_dialog_message)
+                .setNegativeButton(R.string.cancel, null)
+                .setPositiveButton(R.string.delete) { _, _ ->
+                    lifecycleScope.launch {
+                        if (galleryAdapterViewModel.deleteSelectedImages()) {
+                            sendToast(getString(R.string.toast_delete_success))
+                        } else {
+                            sendToast(getString(R.string.toast_delete_failure))
+                        }
+                    }
                 }
-            }
+                .show()
         }
 
         galleryRecyclerView.adapter = galleryAdapter
@@ -329,9 +371,6 @@ class MainActivity : AppCompatActivity() {
         openGalleryButton.setOnClickListener {
             Logger.logInfo(Tags.UserInteraction, "Open Album button pressed")
             galleryDialog.show()
-            if (isTablet()) {
-                galleryDialog.behavior.state = BottomSheetBehavior.STATE_EXPANDED
-            }
         }
 
         openPreferencesButton.setOnClickListener {

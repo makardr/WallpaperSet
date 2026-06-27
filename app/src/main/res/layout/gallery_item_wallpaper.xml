@@ -17,4 +17,26 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <View
+        android:id="@+id/selectionOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="#66000000"
+        android:visibility="gone"
+        app:layout_constraintBottom_toBottomOf="@id/wallpaperThumbnail"
+        app:layout_constraintEnd_toEndOf="@id/wallpaperThumbnail"
+        app:layout_constraintStart_toStartOf="@id/wallpaperThumbnail"
+        app:layout_constraintTop_toTopOf="@id/wallpaperThumbnail" />
+
+    <ImageView
+        android:id="@+id/checkIcon"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_margin="8dp"
+        android:src="@drawable/ic_check"
+        android:visibility="gone"
+        app:layout_constraintEnd_toEndOf="@id/wallpaperThumbnail"
+        app:layout_constraintTop_toTopOf="@id/wallpaperThumbnail"
+        app:tint="@android:color/white" />
+
 </androidx.constraintlayout.widget.ConstraintLayout>
