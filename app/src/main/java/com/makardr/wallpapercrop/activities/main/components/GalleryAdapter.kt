@@ -8,8 +8,6 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.makardr.wallpapercrop.R
-import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.common.utils.Logger
 
 class GalleryAdapter(
     private val onImageTap: (Uri) -> Unit,
@@ -19,7 +17,6 @@ class GalleryAdapter(
     var images: List<Uri> = emptyList()
         set(value) {
             field = value
-            Logger.logInfo(Tags.Gallery, "Gallery image list updated")
             notifyDataSetChanged()
         }
 

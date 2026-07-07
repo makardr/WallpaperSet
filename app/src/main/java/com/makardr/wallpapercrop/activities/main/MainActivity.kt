@@ -244,7 +244,8 @@ class MainActivity : AppCompatActivity() {
         galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
         galleryDialog.setOnShowListener {
-            val bottomSheet = galleryDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
+            val bottomSheet =
+                galleryDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
             bottomSheet?.let {
                 val behavior = BottomSheetBehavior.from(it)
                 val displayMetrics = resources.displayMetrics
@@ -257,7 +258,10 @@ class MainActivity : AppCompatActivity() {
                     }
                     behavior.maxWidth = displayMetrics.widthPixels
                     behavior.peekHeight = displayMetrics.heightPixels
-                    galleryDialog.window?.setLayout(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT)
+                    galleryDialog.window?.setLayout(
+                        ViewGroup.LayoutParams.MATCH_PARENT,
+                        ViewGroup.LayoutParams.MATCH_PARENT
+                    )
                     it.requestLayout()
                 } else {
                     it.layoutParams.height = (displayMetrics.heightPixels * 0.75).toInt()
@@ -290,7 +294,8 @@ class MainActivity : AppCompatActivity() {
 
         galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
             galleryAdapter.selectedUris = selectedSet
-            galleryDeleteButton.visibility = if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
+            galleryDeleteButton.visibility =
+                if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
         }
 
 

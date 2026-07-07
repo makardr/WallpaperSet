@@ -42,10 +42,10 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
         val current = _selectedImages.value?.toMutableSet() ?: mutableSetOf()
         if (current.contains(uri)) {
             current.remove(uri)
-            Logger.logInfo(Tags.GalleryAdapterViewModel, "Removed selected image: $uri")
+            Logger.logInfo(Tags.UserInteraction, "Removed selected image: $uri")
         } else {
             current.add(uri)
-            Logger.logInfo(Tags.GalleryAdapterViewModel, "Added selected image: $uri")
+            Logger.logInfo(Tags.UserInteraction, "Added selected image: $uri")
         }
         _selectedImages.value = current
     }

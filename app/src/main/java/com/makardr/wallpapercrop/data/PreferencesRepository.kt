@@ -5,8 +5,10 @@ import android.content.SharedPreferences
 import androidx.core.content.edit
 
 class PreferencesRepository private constructor(context: Context) {
+    private val appContext: Context = context.applicationContext
+
     private val prefs: SharedPreferences =
-        context.applicationContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
+        appContext.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
 
     var galleryEnabled: Boolean
         get() = prefs.getBoolean(GALLERY_ENABLED_KEY, GALLERY_ENABLED_DEFAULT_VALUE)

@@ -16,7 +16,7 @@ import java.io.IOException
 import java.util.UUID
 
 class ImageRepository private constructor(context: Context) {
-    private val appContext = context.applicationContext
+    private val appContext: Context = context.applicationContext
     private val folderName = "images"
     private val imageDir = File(context.filesDir, folderName)
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
@@ -70,7 +70,7 @@ class ImageRepository private constructor(context: Context) {
     }
 
 
-    suspend fun deleteImages(uriList: Collection<Uri>): Boolean {
+    suspend fun deleteImages(uriList: Set<Uri>): Boolean {
         var failedToDelete = false
         withContext(Dispatchers.IO) {
             for (uri in uriList) {
@@ -100,7 +100,7 @@ class ImageRepository private constructor(context: Context) {
     }
 
     suspend fun deleteAllFiles() {
-        withContext(Dispatchers.IO)  {
+        withContext(Dispatchers.IO) {
             if (imageDir.deleteRecursively()) {
                 Logger.logInfo(Tags.FileSystem, "Deleted all files")
             } else {

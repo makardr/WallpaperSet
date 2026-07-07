@@ -10,7 +10,6 @@ fun Context.isTablet(): Boolean {
     return resources.configuration.smallestScreenWidthDp >= 600
 }
 
-
 fun Uri.available(context: Context): Boolean {
     return when (scheme) {
         "file" -> {
