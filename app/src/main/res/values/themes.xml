@@ -8,6 +8,10 @@
         <item name="android:windowTranslucentStatus">true</item>
     </style>
 
+    <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="enableEdgeToEdge">false</item>
+    </style>
+
     <style name="Theme.WallpaperFix" parent="Base.Theme.WallpaperFix" />
 
     <style name="ImgButton" parent="Widget.AppCompat.ImageButton">

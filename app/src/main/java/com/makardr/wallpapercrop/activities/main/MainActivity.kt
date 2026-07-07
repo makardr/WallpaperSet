@@ -240,7 +240,7 @@ class MainActivity : AppCompatActivity() {
 
         dialog.setContentView(setWallpaperLayout)
 
-        galleryDialog = BottomSheetDialog(this)
+        galleryDialog = BottomSheetDialog(this, R.style.AppBottomSheetDialogTheme)
         galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
 
@@ -251,34 +251,38 @@ class MainActivity : AppCompatActivity() {
         }
         galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
 
-
         galleryDialog.setOnShowListener {
-            val bottomSheet =
-                galleryDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
-            bottomSheet?.let {
-                val behavior = BottomSheetBehavior.from(it)
-                val displayMetrics = resources.displayMetrics
-                if (isTablet()) {
-                    it.layoutParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                    it.layoutParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    (it.parent as? View)?.layoutParams?.let { parentParams ->
-                        parentParams.width = ViewGroup.LayoutParams.MATCH_PARENT
-                        parentParams.height = ViewGroup.LayoutParams.MATCH_PARENT
-                    }
-                    behavior.maxWidth = displayMetrics.widthPixels
-                    behavior.peekHeight = displayMetrics.heightPixels
-                    galleryDialog.window?.setLayout(
-                        ViewGroup.LayoutParams.MATCH_PARENT,
-                        ViewGroup.LayoutParams.MATCH_PARENT
-                    )
-                    it.requestLayout()
-                } else {
-                    it.layoutParams.height = (displayMetrics.heightPixels * 0.75).toInt()
-                    it.requestLayout()
+            val bottomSheet = galleryDialog.findViewById<View>(
+                com.google.android.material.R.id.design_bottom_sheet
+            ) ?: return@setOnShowListener
+
+            val behavior = BottomSheetBehavior.from(bottomSheet)
+            val displayMetrics = resources.displayMetrics
+            val params = bottomSheet.layoutParams
+
+            if (isTablet()) {
+                params.width = ViewGroup.LayoutParams.MATCH_PARENT
+                params.height = ViewGroup.LayoutParams.MATCH_PARENT
+
+                (bottomSheet.parent as? View)?.layoutParams?.apply {
+                    width = ViewGroup.LayoutParams.MATCH_PARENT
+                    height = ViewGroup.LayoutParams.MATCH_PARENT
                 }
-                behavior.state = BottomSheetBehavior.STATE_EXPANDED
-                behavior.skipCollapsed = true
+
+                behavior.maxWidth = displayMetrics.widthPixels
+                behavior.peekHeight = displayMetrics.heightPixels
+
+                galleryDialog.window?.setLayout(
+                    ViewGroup.LayoutParams.MATCH_PARENT,
+                    ViewGroup.LayoutParams.MATCH_PARENT
+                )
+            } else {
+                params.height = (displayMetrics.heightPixels * 0.75).toInt()
             }
+
+            bottomSheet.requestLayout()
+            behavior.state = BottomSheetBehavior.STATE_EXPANDED
+            behavior.skipCollapsed = true
         }
 
         galleryAdapter = GalleryAdapter(
