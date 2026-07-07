@@ -5,6 +5,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import com.makardr.wallpapercrop.R
@@ -12,19 +14,24 @@ import com.makardr.wallpapercrop.R
 class GalleryAdapter(
     private val onImageTap: (Uri) -> Unit,
     private val onImageHold: (Uri) -> Unit
-) : RecyclerView.Adapter<GalleryAdapter.ViewHolder>() {
+) : ListAdapter<GalleryAdapter.GalleryItem, GalleryAdapter.ViewHolder>(DIFF_CALLBACK) {
+    data class GalleryItem(val uri: Uri, val isSelected: Boolean)
 
     var images: List<Uri> = emptyList()
         set(value) {
             field = value
-            notifyDataSetChanged()
+            submitCombinedList()
         }
 
     var selectedUris: Set<Uri> = emptySet()
         set(value) {
             field = value
-            notifyDataSetChanged()
+            submitCombinedList()
         }
+
+    private fun submitCombinedList() {
+        submitList(images.map { GalleryItem(it, selectedUris.contains(it)) })
+    }
 
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val wallpaperThumbnail: ImageView = view.findViewById(R.id.wallpaperThumbnail)
@@ -70,4 +77,14 @@ class GalleryAdapter(
     }
 
     override fun getItemCount(): Int = images.size
+
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<GalleryItem>() {
+            override fun areItemsTheSame(oldItem: GalleryItem, newItem: GalleryItem): Boolean =
+                oldItem.uri == newItem.uri
+
+            override fun areContentsTheSame(oldItem: GalleryItem, newItem: GalleryItem): Boolean =
+                oldItem == newItem
+        }
+    }
 }

@@ -227,7 +227,7 @@ class MainActivity : AppCompatActivity() {
     }
 
 
-    @SuppressLint("InflateParams")
+    @SuppressLint("InflateParams", "SourceLockedOrientationActivity")
     private fun setupInterface() {
         setContentView(R.layout.main_activity)
         if (!isTablet()) {
@@ -243,6 +243,15 @@ class MainActivity : AppCompatActivity() {
         galleryDialog = BottomSheetDialog(this)
         galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
+
+        val emptyGalleryText: View = galleryLayout.findViewById(R.id.emptyGalleryText)
+        galleryAdapterViewModel.galleryImages.observe(this) { uriList ->
+            galleryAdapter.images = uriList
+            emptyGalleryText.visibility = if (uriList.isEmpty()) View.VISIBLE else View.GONE
+        }
+        galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
+
+
         galleryDialog.setOnShowListener {
             val bottomSheet =
                 galleryDialog.findViewById<View>(com.google.android.material.R.id.design_bottom_sheet)
@@ -265,14 +274,13 @@ class MainActivity : AppCompatActivity() {
                     it.requestLayout()
                 } else {
                     it.layoutParams.height = (displayMetrics.heightPixels * 0.75).toInt()
+                    it.requestLayout()
                 }
                 behavior.state = BottomSheetBehavior.STATE_EXPANDED
                 behavior.skipCollapsed = true
             }
         }
 
-        galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
-        val emptyGalleryText: View = galleryLayout.findViewById(R.id.emptyGalleryText)
         galleryAdapter = GalleryAdapter(
             { uri ->
                 if (galleryAdapterViewModel.selectedImages.value.orEmpty().isNotEmpty()) {
@@ -285,13 +293,10 @@ class MainActivity : AppCompatActivity() {
             },
             { uri ->
                 galleryAdapterViewModel.toggleSelection(uri)
-                Logger.logInfo(Tags.Gallery, "Selected image: $uri")
+                Logger.logInfo(Tags.UserInteraction, "Selected image: $uri")
             })
 
-        galleryAdapterViewModel.galleryImages.observe(this) { uriList ->
-            galleryAdapter.images = uriList
-            emptyGalleryText.visibility = if (uriList.isEmpty()) View.VISIBLE else View.GONE
-        }
+
 
         galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
             galleryAdapter.selectedUris = selectedSet

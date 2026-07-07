@@ -1,5 +1,6 @@
 package com.makardr.wallpapercrop.activities.settings
 
+import android.annotation.SuppressLint
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.widget.Button
@@ -29,6 +30,7 @@ class SettingsActivity : AppCompatActivity() {
         setupInterface()
     }
 
+    @SuppressLint("SourceLockedOrientationActivity")
     fun setupInterface() {
         if (!isTablet()) {
             requestedOrientation = ActivityInfo.SCREEN_ORIENTATION_PORTRAIT
