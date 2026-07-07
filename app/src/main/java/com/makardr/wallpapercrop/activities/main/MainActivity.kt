@@ -279,6 +279,7 @@ class MainActivity : AppCompatActivity() {
                     galleryAdapterViewModel.toggleSelection(uri)
                 } else {
                     imageManager.updateOriginUri(uri)
+                    imageManager.disableImageSave()
                     galleryDialog.dismiss()
                 }
             },

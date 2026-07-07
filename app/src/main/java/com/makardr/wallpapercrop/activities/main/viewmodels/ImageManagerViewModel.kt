@@ -31,7 +31,9 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     private var imageIsCropped = false
     private var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
     private var imageRepository: ImageRepository = ImageRepository.getInstance(context)
-    private var preferencesRepository: PreferencesRepository = PreferencesRepository.getInstance(context)
+    private var preferencesRepository: PreferencesRepository =
+        PreferencesRepository.getInstance(context)
+    private var saveWallpaperEnabled = true
 
     private fun notifyImageUpdated() {
         Logger.logDebug(
@@ -57,6 +59,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     fun updateOriginUri(uri: Uri?) {
         imageOriginUri = uri
         imageIsCropped = false
+        enableImageSave()
         Logger.logInfo(Tags.Uri, "Uri updated: $imageOriginUri, imageIsCropped: $imageIsCropped")
         imageOriginUri?.let {
             notifyImageUpdated()
@@ -66,6 +69,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     fun updateIsCropped() {
         Logger.logInfo(Tags.Uri, "imageIsCropped updated")
         imageIsCropped = true
+        enableImageSave()
         notifyImageUpdated()
     }
 
@@ -99,7 +103,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
                         context.contentResolver.openInputStream(uri)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
-                        if (preferencesRepository.galleryEnabled){
+                        if (preferencesRepository.galleryEnabled && saveWallpaperEnabled) {
                             imageRepository.saveImage(uri)
                         }
                         Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
@@ -151,5 +155,13 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
             BitmapFactory.decodeStream(stream, null, options)
         }
         return Pair(options.outWidth, options.outHeight)
+    }
+
+    fun enableImageSave() {
+        saveWallpaperEnabled = true
+    }
+
+    fun disableImageSave() {
+        saveWallpaperEnabled = false
     }
 }
