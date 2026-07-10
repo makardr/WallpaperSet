@@ -68,10 +68,12 @@ class MainActivity : AppCompatActivity() {
     private lateinit var setWallpaperLock: Button
     private lateinit var setWallpaperAll: Button
     private lateinit var setWallpaper: MaterialButton
-    private lateinit var cropImageButton: ImageButton
-    private lateinit var openFileExplorer: ImageButton
-    private lateinit var openGalleryButton: ImageButton
-    private lateinit var openPreferencesButton: ImageButton
+    private lateinit var cropImageButton: View
+    private lateinit var openFileExplorer: View
+    private lateinit var openGalleryButton: View
+    private lateinit var topStartControls: View
+    private lateinit var topEndControls: View
+    private lateinit var openPreferencesButton: View
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
     private lateinit var setWallpaperLayout: View
@@ -347,6 +349,8 @@ class MainActivity : AppCompatActivity() {
         cropImageButton = findViewById(R.id.cropImage)
         openFileExplorer = findViewById(R.id.openExplorer)
         openGalleryButton = findViewById(R.id.openGallery)
+        topStartControls = findViewById(R.id.topStartControls)
+        topEndControls = findViewById(R.id.topEndControls)
         openPreferencesButton = findViewById(R.id.preferencesButton)
 
         setWallpaperSystem.setOnClickListener {
@@ -393,28 +397,21 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        ViewCompat.setOnApplyWindowInsetsListener(setWallpaper) { v, insets ->
-            val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
-            v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                bottomMargin = systemBars.bottom
-            }
-            insets
-        }
-
         listOf(
-            cropImageButton,
-            openFileExplorer,
+            topStartControls,
+            topEndControls,
             setWallpaper,
-            openGalleryButton,
-            openPreferencesButton
-        ).forEach { button ->
-            val xmlMarginTopRecord = button.marginTop
-            val xmlMarginBottomRecord = button.marginBottom
-            ViewCompat.setOnApplyWindowInsetsListener(button) { v, insets ->
+        ).forEach { view ->
+            val xmlMarginTopRecord = view.marginTop
+            val xmlMarginBottomRecord = view.marginBottom
+            ViewCompat.setOnApplyWindowInsetsListener(view) { v, insets ->
                 val systemBars = insets.getInsets(WindowInsetsCompat.Type.systemBars())
                 v.updateLayoutParams<ViewGroup.MarginLayoutParams> {
-                    topMargin = systemBars.top + xmlMarginTopRecord
-                    bottomMargin = systemBars.bottom + xmlMarginBottomRecord
+                    if (v.id == R.id.setWallpaperButton) {
+                        bottomMargin = systemBars.bottom + xmlMarginBottomRecord
+                    } else {
+                        topMargin = systemBars.top + xmlMarginTopRecord
+                    }
                 }
                 insets
             }

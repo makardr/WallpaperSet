@@ -14,14 +14,33 @@
 
     <style name="Theme.WallpaperFix" parent="Base.Theme.WallpaperFix" />
 
-    <style name="ImgButton" parent="Widget.AppCompat.ImageButton">
-        <item name="android:layout_width">55dp</item>
-        <item name="android:layout_height">55dp</item>
-        <item name="android:layout_marginStart">10dp</item>
-        <item name="android:layout_marginTop">10dp</item>
-        <item name="android:layout_marginEnd">10dp</item>
+    <style name="IconButtonContainer">
+        <item name="android:layout_width">85dp</item>
+        <item name="android:layout_height">85dp</item>
         <item name="android:background">@drawable/bg_icon_overlay</item>
-        <item name="tint">@android:color/white</item>
+        <item name="android:foreground">?attr/selectableItemBackground</item>
+        <item name="android:clickable">true</item>
+        <item name="android:focusable">true</item>
+        <item name="android:gravity">center</item>
+        <item name="android:orientation">vertical</item>
+    </style>
+
+    <style name="ImgButtonIcon">
+        <item name="android:layout_width">48dp</item>
+        <item name="android:layout_height">48dp</item>
+        <item name="android:scaleType">fitCenter</item>
+        <item name="android:tint">@android:color/white</item>
+    </style>
+
+    <style name="ButtonLabel">
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:layout_height">wrap_content</item>
+        <item name="android:textColor">@android:color/white</item>
+        <item name="android:textSize">11sp</item>
+        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:gravity">center</item>
+        <item name="android:maxLines">1</item>
+        <item name="android:ellipsize">end</item>
     </style>
 
     <style name="OptionsButton" parent="Widget.MaterialComponents.Button.TextButton">

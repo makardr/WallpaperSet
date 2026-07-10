@@ -10,6 +10,10 @@
     <string name="set_wallpaper_both_option">Рабочий стол и экран блокировки</string>
     <string name="toast_wallpaper_applied">Обои применены!</string>
     <string name="settings_button_description">Настройки</string>
+    <string name="label_open">Файлы</string>
+    <string name="label_crop">Обрезать</string>
+    <string name="label_gallery">Галерея</string>
+    <string name="label_settings">Настройки</string>
     <string name="gallery_title">Галлерея обоев</string>
     <string name="gallery_button_description">Галлерея</string>
     <string name="wallpaper_thumbnail">Миниатюра обоев</string>

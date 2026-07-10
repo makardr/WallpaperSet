@@ -25,45 +25,86 @@
         android:textSize="20sp" />
 
     <LinearLayout
+        android:id="@+id/topStartControls"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="top|start"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="8dp"
         android:orientation="horizontal">
 
-        <ImageButton
+        <LinearLayout
             android:id="@+id/openExplorer"
-            style="@style/ImgButton"
-            android:contentDescription="@string/open_image_explorer_description"
-            android:src="@drawable/open_file_explorer_button" />
+            style="@style/IconButtonContainer"
+            android:contentDescription="@string/open_image_explorer_description">
 
-        <ImageButton
+            <ImageView
+                style="@style/ImgButtonIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/open_file_explorer_button" />
+
+            <TextView
+                style="@style/ButtonLabel"
+                android:text="@string/label_open" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/cropImage"
-            style="@style/ImgButton"
-            android:layout_marginStart="0dp"
-            android:background="@drawable/bg_icon_overlay"
-            android:contentDescription="@string/crop_selected_image_description"
-            android:src="@drawable/crop_image_button"
-            app:tint="@android:color/white" />
+            style="@style/IconButtonContainer"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/crop_selected_image_description">
 
-        <ImageButton
+            <ImageView
+                style="@style/ImgButtonIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/crop_image_button" />
+
+            <TextView
+                style="@style/ButtonLabel"
+                android:text="@string/label_crop" />
+        </LinearLayout>
+
+        <LinearLayout
             android:id="@+id/openGallery"
-            style="@style/ImgButton"
-            android:layout_marginStart="0dp"
-            android:contentDescription="@string/gallery_button_description"
-            android:src="@drawable/gallery_image_button"
-            android:scaleType="fitCenter"
-            android:padding="5dp"/>
+            style="@style/IconButtonContainer"
+            android:layout_marginStart="8dp"
+            android:contentDescription="@string/gallery_button_description">
+
+            <ImageView
+                style="@style/ImgButtonIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/gallery_image_button" />
+
+            <TextView
+                style="@style/ButtonLabel"
+                android:text="@string/label_gallery" />
+        </LinearLayout>
     </LinearLayout>
 
-    <ImageButton
-        android:id="@+id/preferencesButton"
-        style="@style/ImgButton"
+    <LinearLayout
+        android:id="@+id/topEndControls"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
         android:layout_gravity="top|end"
-        android:contentDescription="@string/settings_button_description"
-        android:src="@drawable/open_settings_button"
-        app:tint="@android:color/white"
-        android:scaleType="fitCenter"
-        android:padding="5dp"/>
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="8dp"
+        android:orientation="vertical">
+
+        <LinearLayout
+            android:id="@+id/preferencesButton"
+            style="@style/IconButtonContainer"
+            android:contentDescription="@string/settings_button_description">
+
+            <ImageView
+                style="@style/ImgButtonIcon"
+                android:importantForAccessibility="no"
+                android:src="@drawable/open_settings_button" />
+
+            <TextView
+                style="@style/ButtonLabel"
+                android:text="@string/label_settings" />
+        </LinearLayout>
+    </LinearLayout>
 
     <com.google.android.material.button.MaterialButton
         android:id="@+id/setWallpaperButton"
