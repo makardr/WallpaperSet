@@ -3,7 +3,7 @@ package com.makardr.wallpapercrop.data
 import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -17,8 +17,7 @@ import java.util.UUID
 
 class ImageRepository private constructor(context: Context) {
     private val appContext: Context = context.applicationContext
-    private val folderName = "images"
-    private val imageDir = File(context.filesDir, folderName)
+    private val imageDir = File(context.filesDir, FOLDER_NAME)
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun saveImage(uri: Uri) {
@@ -37,7 +36,7 @@ class ImageRepository private constructor(context: Context) {
                     stream.copyTo(output)
                 }
             }
-            Logger.logInfo(Tags.FileSystem, "Image saved to $fileName")
+            Logger.logInfo(LogTags.FileSystem, "Image saved to $fileName")
         }
     }
 
@@ -59,11 +58,11 @@ class ImageRepository private constructor(context: Context) {
                 val relativePath = file.relativeTo(appContext.filesDir).path
                 if (file.isDirectory) {
                     Logger.logDebug(
-                        Tags.FileSystem,
+                        LogTags.FileSystem,
                         "[DIR] ${file.relativeTo(appContext.filesDir).path}"
                     )
                 } else {
-                    Logger.logDebug(Tags.FileSystem, relativePath)
+                    Logger.logDebug(LogTags.FileSystem, relativePath)
                 }
             }
         }
@@ -82,15 +81,15 @@ class ImageRepository private constructor(context: Context) {
                         uri.path?.let { File(it).delete() } ?: false
 
                     else -> {
-                        Logger.logError(Tags.FileSystem, "Unsupported URI scheme: $uri")
+                        Logger.logError(LogTags.FileSystem, "Unsupported URI scheme: $uri")
                         continue
                     }
                 }
 
                 if (deleted) {
-                    Logger.logInfo(Tags.FileSystem, "File deleted: $uri")
+                    Logger.logInfo(LogTags.FileSystem, "File deleted: $uri")
                 } else {
-                    Logger.logError(Tags.FileSystem, "Failed to delete file: $uri")
+                    Logger.logError(LogTags.FileSystem, "Failed to delete file: $uri")
                     failedToDelete = true
                 }
             }
@@ -102,15 +101,16 @@ class ImageRepository private constructor(context: Context) {
     suspend fun deleteAllFiles() {
         withContext(Dispatchers.IO) {
             if (imageDir.deleteRecursively()) {
-                Logger.logInfo(Tags.FileSystem, "Deleted all files")
+                Logger.logInfo(LogTags.FileSystem, "Deleted all files")
             } else {
-                Logger.logInfo(Tags.FileSystem, "Failed to delete all files")
+                Logger.logInfo(LogTags.FileSystem, "Failed to delete all files")
             }
         }
 
     }
 
     companion object {
+        private const val FOLDER_NAME = "images"
         @Volatile
         private var INSTANCE: ImageRepository? = null
 

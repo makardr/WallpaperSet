@@ -11,7 +11,6 @@ import android.os.Bundle
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageButton
 import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
@@ -31,7 +30,7 @@ import androidx.lifecycle.repeatOnLifecycle
 import androidx.recyclerview.widget.RecyclerView
 import coil.load
 import coil.request.CachePolicy
-import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import com.google.android.material.bottomsheet.BottomSheetBehavior
@@ -86,7 +85,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Logger.logInfo(Tags.Lifecycle, "onCreate")
+        Logger.logInfo(LogTags.Lifecycle, "onCreate")
         preferencesRepository = PreferencesRepository.getInstance(this)
         imageRepository = ImageRepository.getInstance(this)
         setupInterface()
@@ -109,13 +108,13 @@ class MainActivity : AppCompatActivity() {
 
     private fun collectEvents() {
         lifecycleScope.launch {
-            Logger.logDebug(Tags.Lifecycle, "Starting event listening")
+            Logger.logDebug(LogTags.Lifecycle, "Starting event listening")
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 imageManager.refreshImageEventChannel.collect {
                     if (imageManager.getImageUri() != null) {
                         refreshPreviewImage(imageManager.getImageUri()!!)
                     } else {
-                        Logger.logInfo(Tags.Uri, "Image refresh failed, uri is null")
+                        Logger.logInfo(LogTags.Uri, "Image refresh failed, uri is null")
                     }
                     Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
                 }
@@ -129,7 +128,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
-        Logger.logDebug(Tags.Lifecycle, "onDestroy")
+        Logger.logDebug(LogTags.Lifecycle, "onDestroy")
         dialog.dismiss()
         galleryDialog.dismiss()
         if (isFinishing) {
@@ -139,13 +138,13 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStart() {
         super.onStart()
-        Logger.logDebug(Tags.Lifecycle, "onStart")
+        Logger.logDebug(LogTags.Lifecycle, "onStart")
         // Activity becomes visible (not yet interactive)
     }
 
     override fun onResume() {
         super.onResume()
-        Logger.logDebug(Tags.Lifecycle, "onResume")
+        Logger.logDebug(LogTags.Lifecycle, "onResume")
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         galleryAdapterViewModel.refreshGallery()
         // Activity is in foreground and interactive
@@ -154,7 +153,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
-        Logger.logDebug(Tags.Lifecycle, "onPause")
+        Logger.logDebug(LogTags.Lifecycle, "onPause")
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Losing focus
         // Unregister sensors, pause animations
@@ -162,7 +161,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        Logger.logDebug(Tags.Lifecycle, "onStop")
+        Logger.logDebug(LogTags.Lifecycle, "onStop")
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Activity fully hidden/backgrounded
         // Save data, release heavy resources
@@ -170,7 +169,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestart() {
         super.onRestart()
-        Logger.logDebug(Tags.Lifecycle, "onRestart")
+        Logger.logDebug(LogTags.Lifecycle, "onRestart")
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
         // Called after onStop() when user navigates back to activity
     }
@@ -179,15 +178,15 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        Logger.logInfo(Tags.IncomingIntent, "Received image uri on newIntent: $intent")
+        Logger.logInfo(LogTags.IncomingIntent, "Received image uri on newIntent: $intent")
         handleIncomingIntent(intent)
     }
 
     private fun handleIncomingIntent(intent: Intent) {
-        Logger.logInfo(Tags.IncomingIntent, "Handling incoming intent ${intent.action}")
+        Logger.logInfo(LogTags.IncomingIntent, "Handling incoming intent ${intent.action}")
         when (intent.action) {
             Intent.ACTION_SEND -> handleActionSend(intent)
-            else -> Logger.logInfo(Tags.IncomingIntent, "Ignoring intent ${intent.action}")
+            else -> Logger.logInfo(LogTags.IncomingIntent, "Ignoring intent ${intent.action}")
         }
     }
 
@@ -204,18 +203,18 @@ class MainActivity : AppCompatActivity() {
                     sharedUri, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
                 Logger.logInfo(
-                    Tags.IncomingIntent, "Success granting FLAG_GRANT_READ_URI_PERMISSION"
+                    LogTags.IncomingIntent, "Success granting FLAG_GRANT_READ_URI_PERMISSION"
                 )
             } catch (e: SecurityException) {
-                Logger.logWarning(Tags.IncomingIntent, e.toString())
+                Logger.logWarning(LogTags.IncomingIntent, e.toString())
             }
-            Logger.logInfo(Tags.IncomingIntent, sharedUri.toString())
+            Logger.logInfo(LogTags.IncomingIntent, sharedUri.toString())
             imageManager.updateOriginUri(sharedUri)
             Logger.logInfo(
-                Tags.IncomingIntent, "handleImageGeneric set uri as $sharedUri"
+                LogTags.IncomingIntent, "handleImageGeneric set uri as $sharedUri"
             )
         } else {
-            Logger.logError(Tags.IncomingIntent, "Shared image uri is null, ${intent.data}")
+            Logger.logError(LogTags.IncomingIntent, "Shared image uri is null, ${intent.data}")
             throw NullPointerException("Received image uri is null")
         }
     }
@@ -299,7 +298,7 @@ class MainActivity : AppCompatActivity() {
             },
             { uri ->
                 galleryAdapterViewModel.toggleSelection(uri)
-                Logger.logInfo(Tags.UserInteraction, "Selected image: $uri")
+                Logger.logInfo(LogTags.UserInteraction, "Selected image: $uri")
             })
 
 
@@ -317,7 +316,7 @@ class MainActivity : AppCompatActivity() {
 
         galleryDeleteButton = galleryLayout.findViewById(R.id.deleteButton)
         galleryDeleteButton.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "Delete button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "Delete button pressed")
             MaterialAlertDialogBuilder(this)
                 .setTitle(R.string.delete_dialog_title)
                 .setMessage(R.string.delete_dialog_message)
@@ -354,17 +353,17 @@ class MainActivity : AppCompatActivity() {
         openPreferencesButton = findViewById(R.id.preferencesButton)
 
         setWallpaperSystem.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "setWallpaperSystem button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "setWallpaperSystem button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
         setWallpaperLock.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "setWallpaperLock button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "setWallpaperLock button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
         setWallpaperAll.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "setWallpaperAll button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "setWallpaperAll button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
         }
 
@@ -388,12 +387,12 @@ class MainActivity : AppCompatActivity() {
         }
 
         openGalleryButton.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "Open Album button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "Open Album button pressed")
             galleryDialog.show()
         }
 
         openPreferencesButton.setOnClickListener {
-            Logger.logInfo(Tags.UserInteraction, "Open Settings button pressed")
+            Logger.logInfo(LogTags.UserInteraction, "Open Settings button pressed")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
@@ -426,24 +425,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun enableInterface() {
-        Logger.logInfo(Tags.SetupInterface, "Interface enabled")
+        Logger.logInfo(LogTags.SetupInterface, "Interface enabled")
         setWallpaper.isEnabled = true
         tooltip.visibility = View.INVISIBLE
     }
 
     private fun disableInterface() {
-        Logger.logInfo(Tags.SetupInterface, "Interface disabled")
+        Logger.logInfo(LogTags.SetupInterface, "Interface disabled")
         setWallpaper.isEnabled = false
         tooltip.visibility = View.VISIBLE
     }
 
     private fun refreshPreviewImage(uri: Uri) {
         if (!uri.available(this@MainActivity)) {
-            Logger.logError(Tags.Uri, "File does not exist, resetting uri: $uri")
+            Logger.logError(LogTags.Uri, "File does not exist, resetting uri: $uri")
             imageManager.triggerFailState()
             disableInterface()
         } else {
-            Logger.logInfo(Tags.Uri, "Refreshing preview image: $uri")
+            Logger.logInfo(LogTags.Uri, "Refreshing preview image: $uri")
             wallpaperPreview.load(uri) {
                 crossfade(true)
                 memoryCachePolicy(CachePolicy.DISABLED)
@@ -457,10 +456,10 @@ class MainActivity : AppCompatActivity() {
         imageManager.setWallpaper(flag)
         dialog.hide()
         lifecycleScope.launch {
-            Logger.logInfo(Tags.SetWallpaper, "Exit delay started")
+            Logger.logInfo(LogTags.SetWallpaper, "Exit delay started")
             sendToast(getString(R.string.toast_wallpaper_applied))
             delay(1000.milliseconds)
-            Logger.logInfo(Tags.SetWallpaper, "Exit delay finished, exiting to main screen")
+            Logger.logInfo(LogTags.SetWallpaper, "Exit delay finished, exiting to main screen")
             exitToTheMainScreen()
         }
     }

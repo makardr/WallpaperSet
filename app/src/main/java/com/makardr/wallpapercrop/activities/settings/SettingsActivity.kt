@@ -10,7 +10,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.makardr.wallpapercrop.R
-import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.isTablet
 import com.makardr.wallpapercrop.data.ImageRepository
@@ -44,7 +44,7 @@ class SettingsActivity : AppCompatActivity() {
         galleryPreference.setOnClickListener {
             preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
             Logger.logInfo(
-                Tags.UserInteraction,
+                LogTags.UserInteraction,
                 "Gallery preference changed ${preferencesRepository.galleryEnabled}"
             )
         }

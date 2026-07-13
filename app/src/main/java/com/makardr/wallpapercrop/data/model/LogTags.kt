@@ -1,6 +1,6 @@
-package com.makardr.wallpapercrop.common
+package com.makardr.wallpapercrop.data.model
 
-enum class Tags {
+enum class LogTags {
     Generic,
     Uri,
     CropResult,
