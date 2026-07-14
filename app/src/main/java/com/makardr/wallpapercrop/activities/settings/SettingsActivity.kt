@@ -1,6 +1,7 @@
 package com.makardr.wallpapercrop.activities.settings
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.content.pm.ActivityInfo
 import android.os.Bundle
 import android.widget.Button
@@ -10,6 +11,7 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.lifecycle.lifecycleScope
 import com.makardr.wallpapercrop.R
+import com.makardr.wallpapercrop.activities.logviewer.DebugLogsActivity
 import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.isTablet
@@ -22,6 +24,7 @@ class SettingsActivity : AppCompatActivity() {
     private var imageRepository = ImageRepository.getInstance(this)
     private lateinit var galleryPreference: Button
     private lateinit var wipeData: Button
+    private lateinit var debugLogs: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -39,6 +42,7 @@ class SettingsActivity : AppCompatActivity() {
         setContentView(R.layout.settings_activity)
         galleryPreference = findViewById(R.id.galleryPreference)
         wipeData = findViewById(R.id.wipeData)
+        debugLogs = findViewById(R.id.debugLogs)
 
         //TODO: switching gallery preference is unreliably updates gallery button state
         galleryPreference.setOnClickListener {
@@ -48,10 +52,17 @@ class SettingsActivity : AppCompatActivity() {
                 "Gallery preference changed ${preferencesRepository.galleryEnabled}"
             )
         }
+
+
         wipeData.setOnClickListener {
             lifecycleScope.launch {
                 imageRepository.deleteAllFiles()
             }
+        }
+
+        debugLogs.setOnClickListener {
+            Logger.logInfo(LogTags.UserInteraction, "Debug logs button clicked")
+            startActivity(Intent(this, DebugLogsActivity::class.java))
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

@@ -1,12 +1,10 @@
 package com.makardr.wallpapercrop.data
 
-import android.content.Context
 import com.makardr.wallpapercrop.data.model.LogEntry
 import com.makardr.wallpapercrop.data.model.LogLevel
 import com.makardr.wallpapercrop.data.model.LogTags
 
-class LogsRepository private constructor(context: Context) {
-//    private val appContext: Context = context.applicationContext
+class LogsRepository private constructor() {
 
     private val _logs = ArrayDeque<LogEntry>(MAX_LOGS)
     private val lock = Any()
@@ -46,9 +44,9 @@ class LogsRepository private constructor(context: Context) {
         private var INSTANCE: LogsRepository? = null
         private const val MAX_LOGS = 200
 
-        fun getInstance(context: Context): LogsRepository {
+        fun getInstance(): LogsRepository {
             return INSTANCE ?: synchronized(this) {
-                INSTANCE ?: LogsRepository(context).also { INSTANCE = it }
+                INSTANCE ?: LogsRepository().also { INSTANCE = it }
             }
         }
     }

@@ -22,4 +22,12 @@
         android:text="Delete all data"
         app:layout_constraintStart_toEndOf="@+id/galleryPreference"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/debugLogs"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Debug logs"
+        app:layout_constraintStart_toEndOf="@+id/wipeData"
+        app:layout_constraintTop_toTopOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
