@@ -11,14 +11,14 @@ import com.makardr.wallpapercrop.data.model.LogEntry
 import java.text.SimpleDateFormat
 import java.util.Locale
 
-class LogAdapter(private val logs: List<LogEntry>) :
-    RecyclerView.Adapter<LogAdapter.LogViewHolder>() {
+class DebugLogsRecyclerView(private var logs: List<LogEntry>) :
+    RecyclerView.Adapter<DebugLogsRecyclerView.LogViewHolder>() {
 
     class LogViewHolder(val textView: TextView) : RecyclerView.ViewHolder(textView)
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): LogViewHolder {
         val view = LayoutInflater.from(parent.context)
-            .inflate(R.layout.item_log_entry, parent, false) as TextView
+            .inflate(R.layout.debug_log_entry, parent, false) as TextView
         return LogViewHolder(view)
     }
 
@@ -36,4 +36,9 @@ class LogAdapter(private val logs: List<LogEntry>) :
     }
 
     override fun getItemCount() = logs.size
+
+    fun updateLogs(newLogs: List<LogEntry>) {
+        logs = newLogs
+        notifyDataSetChanged()
+    }
 }
