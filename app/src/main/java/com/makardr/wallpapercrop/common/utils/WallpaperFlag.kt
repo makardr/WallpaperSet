@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop.utils
+package com.makardr.wallpapercrop.common.utils
 
 import android.app.WallpaperManager
 import androidx.annotation.IntDef

@@ -67,3 +67,11 @@ https://www.apache.org/licenses/LICENSE-2.0
 https://www.apache.org/licenses/LICENSE-2.0
 
 ---
+
+### AndroidX RecyclerView
+**Version:** 1.4.0
+**Copyright:** The Android Open Source Project
+**License:** Apache License, Version 2.0
+https://www.apache.org/licenses/LICENSE-2.0
+
+---

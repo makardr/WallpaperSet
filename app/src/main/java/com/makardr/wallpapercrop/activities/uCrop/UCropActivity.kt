@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop.uCrop
+package com.makardr.wallpapercrop.activities.uCrop
 
 import android.app.Activity
 import android.content.Context
@@ -6,16 +6,16 @@ import android.graphics.Bitmap
 import android.net.Uri
 import androidx.activity.result.ActivityResultCaller
 import androidx.activity.result.contract.ActivityResultContracts
-import com.makardr.wallpapercrop.ImageManager
+import com.makardr.wallpapercrop.activities.main.viewmodels.ImageManagerViewModel
 import com.makardr.wallpapercrop.common.AppConstants
-import com.makardr.wallpapercrop.common.Tags
-import com.makardr.wallpapercrop.utils.Logger
-import com.makardr.wallpapercrop.utils.isTablet
+import com.makardr.wallpapercrop.data.model.LogTags
+import com.makardr.wallpapercrop.common.utils.Logger
+import com.makardr.wallpapercrop.common.utils.isTablet
 import com.yalantis.ucrop.UCrop
 
-class UCropManager(
+class UCropActivity(
     caller: ActivityResultCaller,
-    private val imageManager: ImageManager
+    private val imageManager: ImageManagerViewModel
 ) {
     private val context = caller as Context
 
@@ -49,20 +49,16 @@ class UCropManager(
             Activity.RESULT_OK -> {
                 //val croppedUri = UCrop.getOutput(result.data!!)
                 imageManager.updateIsCropped()
-                Logger.logInfo(
-                    Tags.CropResult,
-                    "Crop result set imageUri as ${imageManager.getOriginUri()}"
-                )
             }
 
             Activity.RESULT_CANCELED -> {
-                Logger.logInfo(Tags.CropResult, "User cancelled crop")
+                Logger.logInfo(LogTags.CropResult, "User cancelled crop")
                 imageManager.resetCrop()
             }
 
             UCrop.RESULT_ERROR -> {
                 val error = UCrop.getError(result.data!!)
-                Logger.logError(Tags.CropResult, error.toString())
+                Logger.logError(LogTags.CropResult, error.toString())
             }
         }
     }
