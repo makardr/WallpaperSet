@@ -63,7 +63,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var wallpaperPreview: ImageView
     private lateinit var setWallpaper: MaterialButton
     private lateinit var tooltip: TextView
-    private lateinit var dialog: Dialog
+    private lateinit var applyWallpaperDialog: Dialog
     private lateinit var galleryDialog: BottomSheetDialog
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -111,7 +111,7 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Logger.logDebug(LogTags.Lifecycle, "onDestroy")
-        dialog.dismiss()
+        applyWallpaperDialog.dismiss()
         galleryDialog.dismiss()
         if (isFinishing) {
             pickMediaLauncher.unregister()
@@ -218,10 +218,11 @@ class MainActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
 
-        dialog = BottomSheetDialog(this)
-        val setWallpaperLayout = layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
+        applyWallpaperDialog = BottomSheetDialog(this, R.style.AppBottomSheetDialogTheme)
+        val setWallpaperLayout =
+            layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
 
-        dialog.setContentView(setWallpaperLayout)
+        applyWallpaperDialog.setContentView(setWallpaperLayout)
 
         galleryDialog = BottomSheetDialog(this, R.style.AppBottomSheetDialogTheme)
         val galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
@@ -340,9 +341,9 @@ class MainActivity : AppCompatActivity() {
         }
 
         setWallpaper.setOnClickListener {
-            dialog.show()
+            applyWallpaperDialog.show()
             if (isTablet()) {
-                (dialog as? BottomSheetDialog)?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+                (applyWallpaperDialog as? BottomSheetDialog)?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
             }
         }
 
@@ -429,7 +430,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
         imageManager.setWallpaper(flag)
-        dialog.hide()
+        applyWallpaperDialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(LogTags.SetWallpaper, "Exit delay started")
             sendToast(getString(R.string.toast_wallpaper_applied))
