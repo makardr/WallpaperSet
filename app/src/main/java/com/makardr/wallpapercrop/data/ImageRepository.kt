@@ -69,6 +69,7 @@ class ImageRepository private constructor(context: Context) {
     }
 
 
+    //TODO: after image is deleted make sure it is not selected
     suspend fun deleteImages(uriList: Set<Uri>): Boolean {
         var failedToDelete = false
         withContext(Dispatchers.IO) {
@@ -93,7 +94,6 @@ class ImageRepository private constructor(context: Context) {
                     failedToDelete = true
                 }
             }
-
         }
         return !failedToDelete
     }

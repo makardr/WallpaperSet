@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
 
-        dialog = BottomSheetDialog(this)
+        dialog = BottomSheetDialog(this, R.style.AppBottomSheetDialogTheme)
         val setWallpaperLayout = layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
 
         dialog.setContentView(setWallpaperLayout)

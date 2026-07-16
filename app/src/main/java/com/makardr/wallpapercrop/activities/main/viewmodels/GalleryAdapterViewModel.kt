@@ -55,6 +55,7 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
         if (imagesToDelete.isEmpty()) return true
 
         return withContext(Dispatchers.IO) {
+            //TODO: await deletion?
             val result = imageRepository.deleteImages(imagesToDelete)
             withContext(Dispatchers.Main) {
                 clearSelectedImagesList()
