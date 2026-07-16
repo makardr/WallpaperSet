@@ -22,9 +22,6 @@ import kotlinx.coroutines.launch
 class SettingsActivity : AppCompatActivity() {
     private var preferencesRepository = PreferencesRepository.getInstance(this)
     private var imageRepository = ImageRepository.getInstance(this)
-    private lateinit var galleryPreference: Button
-    private lateinit var wipeData: Button
-    private lateinit var debugLogs: Button
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -40,12 +37,9 @@ class SettingsActivity : AppCompatActivity() {
         }
         enableEdgeToEdge()
         setContentView(R.layout.settings_activity)
-        galleryPreference = findViewById(R.id.galleryPreference)
-        wipeData = findViewById(R.id.wipeData)
-        debugLogs = findViewById(R.id.debugLogs)
 
         //TODO: switching gallery preference is unreliably updates gallery button state
-        galleryPreference.setOnClickListener {
+        findViewById<Button>(R.id.galleryPreference).setOnClickListener {
             preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
             Logger.logInfo(
                 LogTags.UserInteraction,
@@ -54,13 +48,13 @@ class SettingsActivity : AppCompatActivity() {
         }
 
 
-        wipeData.setOnClickListener {
+        findViewById<Button>(R.id.wipeData).setOnClickListener {
             lifecycleScope.launch {
                 imageRepository.deleteAllFiles()
             }
         }
 
-        debugLogs.setOnClickListener {
+        findViewById<Button>(R.id.debugLogs).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Debug logs button clicked")
             startActivity(Intent(this, DebugLogsActivity::class.java))
         }

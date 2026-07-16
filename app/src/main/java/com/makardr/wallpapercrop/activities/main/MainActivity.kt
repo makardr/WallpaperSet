@@ -45,7 +45,6 @@ import com.makardr.wallpapercrop.activities.settings.SettingsActivity
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
-import com.makardr.wallpapercrop.data.ImageRepository
 import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,36 +57,19 @@ class MainActivity : AppCompatActivity() {
     private val galleryAdapterViewModel: GalleryAdapterViewModel by viewModels()
 
     private lateinit var uCropActivity: UCropActivity
-    private lateinit var imageRepository: ImageRepository
     private lateinit var preferencesRepository: PreferencesRepository
 
     //Interface elements
     private lateinit var wallpaperPreview: ImageView
-    private lateinit var setWallpaperSystem: Button
-    private lateinit var setWallpaperLock: Button
-    private lateinit var setWallpaperAll: Button
     private lateinit var setWallpaper: MaterialButton
-    private lateinit var cropImageButton: View
-    private lateinit var openFileExplorer: View
-    private lateinit var openGalleryButton: View
-    private lateinit var topStartControls: View
-    private lateinit var topEndControls: View
-    private lateinit var openPreferencesButton: View
     private lateinit var tooltip: TextView
     private lateinit var dialog: Dialog
-    private lateinit var setWallpaperLayout: View
-
     private lateinit var galleryDialog: BottomSheetDialog
-    private lateinit var galleryLayout: View
-    private lateinit var galleryRecyclerView: RecyclerView
-    private lateinit var galleryAdapter: GalleryAdapter
-    private lateinit var galleryDeleteButton: ImageView
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(LogTags.Lifecycle, "onCreate")
         preferencesRepository = PreferencesRepository.getInstance(this)
-        imageRepository = ImageRepository.getInstance(this)
         setupInterface()
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
@@ -237,20 +219,34 @@ class MainActivity : AppCompatActivity() {
         enableEdgeToEdge()
 
         dialog = BottomSheetDialog(this)
-        setWallpaperLayout = layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
+        val setWallpaperLayout = layoutInflater.inflate(R.layout.main_set_wallpaper_bottom_sheet, null)
 
         dialog.setContentView(setWallpaperLayout)
 
         galleryDialog = BottomSheetDialog(this, R.style.AppBottomSheetDialogTheme)
-        galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
+        val galleryLayout = layoutInflater.inflate(R.layout.gallery_bottom_sheet, null)
         galleryDialog.setContentView(galleryLayout)
+
+        val galleryAdapter = GalleryAdapter(
+            { uri ->
+                if (galleryAdapterViewModel.selectedImages.value.orEmpty().isNotEmpty()) {
+                    galleryAdapterViewModel.toggleSelection(uri)
+                } else {
+                    imageManager.updateOriginUri(uri)
+                    imageManager.disableImageSave()
+                    galleryDialog.dismiss()
+                }
+            },
+            { uri ->
+                galleryAdapterViewModel.toggleSelection(uri)
+                Logger.logInfo(LogTags.UserInteraction, "Selected image: $uri")
+            })
 
         val emptyGalleryText: View = galleryLayout.findViewById(R.id.emptyGalleryText)
         galleryAdapterViewModel.galleryImages.observe(this) { uriList ->
             galleryAdapter.images = uriList
             emptyGalleryText.visibility = if (uriList.isEmpty()) View.VISIBLE else View.GONE
         }
-        galleryRecyclerView = galleryLayout.findViewById(R.id.galleryRecyclerView)
 
         galleryDialog.setOnShowListener {
             val bottomSheet = galleryDialog.findViewById<View>(
@@ -286,35 +282,7 @@ class MainActivity : AppCompatActivity() {
             behavior.skipCollapsed = true
         }
 
-        galleryAdapter = GalleryAdapter(
-            { uri ->
-                if (galleryAdapterViewModel.selectedImages.value.orEmpty().isNotEmpty()) {
-                    galleryAdapterViewModel.toggleSelection(uri)
-                } else {
-                    imageManager.updateOriginUri(uri)
-                    imageManager.disableImageSave()
-                    galleryDialog.dismiss()
-                }
-            },
-            { uri ->
-                galleryAdapterViewModel.toggleSelection(uri)
-                Logger.logInfo(LogTags.UserInteraction, "Selected image: $uri")
-            })
-
-
-
-        galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
-            galleryAdapter.selectedUris = selectedSet
-            galleryDeleteButton.visibility =
-                if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
-        }
-
-
-        galleryDialog.setOnDismissListener {
-            galleryAdapterViewModel.clearSelectedImagesList()
-        }
-
-        galleryDeleteButton = galleryLayout.findViewById(R.id.deleteButton)
+        val galleryDeleteButton = galleryLayout.findViewById<ImageView>(R.id.deleteButton)
         galleryDeleteButton.setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Delete button pressed")
             MaterialAlertDialogBuilder(this)
@@ -333,36 +301,40 @@ class MainActivity : AppCompatActivity() {
                 .show()
         }
 
-        galleryRecyclerView.adapter = galleryAdapter
+        galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
+            galleryAdapter.selectedUris = selectedSet
+            galleryDeleteButton.visibility =
+                if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
+        }
+
+
+        galleryDialog.setOnDismissListener {
+            galleryAdapterViewModel.clearSelectedImagesList()
+        }
+
+
+
+        galleryLayout.findViewById<RecyclerView>(R.id.galleryRecyclerView).adapter = galleryAdapter
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
 
         tooltip = findViewById(R.id.tooltip)
 
-        setWallpaperSystem = setWallpaperLayout.findViewById(R.id.optionHome)
-        setWallpaperLock = setWallpaperLayout.findViewById(R.id.optionLock)
-        setWallpaperAll = setWallpaperLayout.findViewById(R.id.optionBoth)
-
         setWallpaper = findViewById(R.id.setWallpaperButton)
 
-        cropImageButton = findViewById(R.id.cropImage)
-        openFileExplorer = findViewById(R.id.openExplorer)
-        openGalleryButton = findViewById(R.id.openGallery)
-        topStartControls = findViewById(R.id.topStartControls)
-        topEndControls = findViewById(R.id.topEndControls)
-        openPreferencesButton = findViewById(R.id.preferencesButton)
+        val openGalleryButton = findViewById<View>(R.id.openGallery)
 
-        setWallpaperSystem.setOnClickListener {
+        setWallpaperLayout.findViewById<Button>(R.id.optionHome).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "setWallpaperSystem button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM)
         }
 
-        setWallpaperLock.setOnClickListener {
+        setWallpaperLayout.findViewById<Button>(R.id.optionLock).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "setWallpaperLock button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_LOCK)
         }
 
-        setWallpaperAll.setOnClickListener {
+        setWallpaperLayout.findViewById<Button>(R.id.optionBoth).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "setWallpaperAll button pressed")
             setOnClickWallpaper(WallpaperManager.FLAG_SYSTEM or WallpaperManager.FLAG_LOCK)
         }
@@ -374,13 +346,13 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        cropImageButton.setOnClickListener {
+        findViewById<View>(R.id.cropImage).setOnClickListener {
             imageManager.getOriginUri()?.let {
                 uCropActivity.launchUCropActivity(it)
             }
         }
 
-        openFileExplorer.setOnClickListener {
+        findViewById<View>(R.id.openExplorer).setOnClickListener {
             pickMediaLauncher.launch(
                 PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
             )
@@ -391,10 +363,13 @@ class MainActivity : AppCompatActivity() {
             galleryDialog.show()
         }
 
-        openPreferencesButton.setOnClickListener {
+        findViewById<View>(R.id.preferencesButton).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Open Settings button pressed")
             startActivity(Intent(this, SettingsActivity::class.java))
         }
+
+        val topStartControls = findViewById<View>(R.id.topStartControls)
+        val topEndControls = findViewById<View>(R.id.topEndControls)
 
         listOf(
             topStartControls,
