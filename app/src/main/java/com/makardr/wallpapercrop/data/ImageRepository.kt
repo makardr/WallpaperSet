@@ -1,30 +1,29 @@
 package com.makardr.wallpapercrop.data
 
+import android.content.ContentResolver
 import android.content.Context
 import android.net.Uri
-import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
 import java.util.UUID
 
 class ImageRepository private constructor(context: Context) {
-    private val appContext = context.applicationContext
-    private val folderName = "images"
-    private val imageDir = File(context.filesDir, folderName)
+    private val appContext: Context = context.applicationContext
+    private val imageDir = File(context.filesDir, FOLDER_NAME)
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun saveImage(uri: Uri) {
         repositoryScope.launch {
             val guid = UUID.randomUUID().toString()
             val fileName = "${guid}.png"
-
-            Logger.logInfo(Tags.FileSystem, "Saving image to $fileName")
             val input = appContext.contentResolver.openInputStream(uri)
                 ?: throw IOException("Unable to open input stream for $uri")
 
@@ -37,7 +36,7 @@ class ImageRepository private constructor(context: Context) {
                     stream.copyTo(output)
                 }
             }
-            printAllFiles()
+            Logger.logInfo(LogTags.FileSystem, "Image saved to $fileName")
         }
     }
 
@@ -59,47 +58,59 @@ class ImageRepository private constructor(context: Context) {
                 val relativePath = file.relativeTo(appContext.filesDir).path
                 if (file.isDirectory) {
                     Logger.logDebug(
-                        Tags.FileSystem,
+                        LogTags.FileSystem,
                         "[DIR] ${file.relativeTo(appContext.filesDir).path}"
                     )
                 } else {
-                    Logger.logDebug(Tags.FileSystem, relativePath)
+                    Logger.logDebug(LogTags.FileSystem, relativePath)
                 }
             }
         }
     }
 
 
-    fun deleteImage(fileName: String) {
-        repositoryScope.launch {
-            val file = File(imageDir, fileName)
-            if (file.exists()) {
-                val deleted = file.delete()
+    suspend fun deleteImages(uriList: Set<Uri>): Boolean {
+        var failedToDelete = false
+        withContext(Dispatchers.IO) {
+            for (uri in uriList) {
+                val deleted = when (uri.scheme) {
+                    ContentResolver.SCHEME_CONTENT ->
+                        appContext.contentResolver.delete(uri, null, null) > 0
+
+                    ContentResolver.SCHEME_FILE ->
+                        uri.path?.let { File(it).delete() } ?: false
+
+                    else -> {
+                        Logger.logError(LogTags.FileSystem, "Unsupported URI scheme: $uri")
+                        continue
+                    }
+                }
+
                 if (deleted) {
-                    Logger.logInfo(Tags.FileSystem, "File deleted: $fileName")
+                    Logger.logInfo(LogTags.FileSystem, "File deleted: $uri")
                 } else {
-                    Logger.logError(Tags.FileSystem, "Failed to delete file: $fileName")
+                    Logger.logError(LogTags.FileSystem, "Failed to delete file: $uri")
+                    failedToDelete = true
                 }
-            } else {
-                Logger.logError(Tags.FileSystem, "File not found: $fileName")
             }
-        }
 
+        }
+        return !failedToDelete
     }
 
-    fun deleteAllFiles() {
-        repositoryScope.launch {
-            val imagesDir = File(appContext.filesDir, "images")
-            if (imagesDir.deleteRecursively()) {
-                Logger.logInfo(Tags.FileSystem, "Deleted all files")
+    suspend fun deleteAllFiles() {
+        withContext(Dispatchers.IO) {
+            if (imageDir.deleteRecursively()) {
+                Logger.logInfo(LogTags.FileSystem, "Deleted all files")
             } else {
-                Logger.logInfo(Tags.FileSystem, "Failed to delete all files")
+                Logger.logInfo(LogTags.FileSystem, "Failed to delete all files")
             }
         }
 
     }
 
     companion object {
+        private const val FOLDER_NAME = "images"
         @Volatile
         private var INSTANCE: ImageRepository? = null
 

@@ -1,4 +1,4 @@
-package com.makardr.wallpapercrop.activities.main
+package com.makardr.wallpapercrop.activities.main.viewmodels
 
 import android.app.Application
 import android.app.WallpaperManager
@@ -8,10 +8,11 @@ import android.net.Uri
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.makardr.wallpapercrop.common.AppConstants
-import com.makardr.wallpapercrop.common.Tags
+import com.makardr.wallpapercrop.data.model.LogTags
 import com.makardr.wallpapercrop.common.utils.Logger
 import com.makardr.wallpapercrop.common.utils.WallpaperFlag
 import com.makardr.wallpapercrop.data.ImageRepository
+import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
@@ -30,10 +31,13 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     private var imageIsCropped = false
     private var croppedImageUri: Uri = AppConstants.imageCacheOutputUri(context)
     private var imageRepository: ImageRepository = ImageRepository.getInstance(context)
+    private var preferencesRepository: PreferencesRepository =
+        PreferencesRepository.getInstance(context)
+    private var saveWallpaperEnabled = true
 
     private fun notifyImageUpdated() {
         Logger.logDebug(
-            Tags.Uri,
+            LogTags.Uri,
             "Notify image updated: imageIsCropped: $imageIsCropped, imageUri: $imageOriginUri "
         )
         _refreshChannel.trySend(Unit)
@@ -47,7 +51,7 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
         }
     }
 
-    //Used exclusively to crop only the original shared image
+    //Used exclusively to crop only the original shared image, should not be used otherwise
     fun getOriginUri(): Uri? {
         return imageOriginUri
     }
@@ -55,20 +59,22 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
     fun updateOriginUri(uri: Uri?) {
         imageOriginUri = uri
         imageIsCropped = false
-        Logger.logInfo(Tags.Uri, "Uri updated: $imageOriginUri, imageIsCropped: $imageIsCropped")
+        enableImageSave()
+        Logger.logInfo(LogTags.Uri, "Uri updated: $imageOriginUri, imageIsCropped: $imageIsCropped")
         imageOriginUri?.let {
             notifyImageUpdated()
         }
     }
 
     fun updateIsCropped() {
-        Logger.logInfo(Tags.Uri, "imageIsCropped updated")
+        Logger.logInfo(LogTags.Uri, "imageIsCropped updated")
         imageIsCropped = true
+        enableImageSave()
         notifyImageUpdated()
     }
 
     fun resetCrop() {
-        Logger.logInfo(Tags.Uri, "Reset image crop")
+        Logger.logInfo(LogTags.Uri, "Reset image crop")
         imageIsCropped = false
         imageOriginUri?.let {
             notifyImageUpdated()
@@ -97,38 +103,40 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
                         context.contentResolver.openInputStream(uri)?.use { stream ->
                             wallpaperManager.setStream(stream, cropHint, true, flag)
                         }
-                        imageRepository.saveImage(uri)
-                        Logger.logInfo(Tags.SetWallpaper, "Wallpaper applied")
+                        if (preferencesRepository.galleryEnabled && saveWallpaperEnabled) {
+                            imageRepository.saveImage(uri)
+                        }
+                        Logger.logInfo(LogTags.SetWallpaper, "Wallpaper applied")
                     }
                 }
             } catch (e: IOException) {
-                Logger.logError(Tags.SetWallpaper, e.toString())
+                Logger.logError(LogTags.SetWallpaper, e.toString())
             }
         }
     }
 
     private fun calculateCropHint(uri: Uri): Rect {
-        Logger.logDebug(Tags.DimensionCrop, "========================================")
+        Logger.logDebug(LogTags.DimensionCrop, "========================================")
         val (imageWidth, imageHeight) = getImageDimensions(uri)
         Logger.logDebug(
-            Tags.DimensionCrop,
+            LogTags.DimensionCrop,
             "screenWidth $screenWidth, screenHeight $screenHeight, imageWidth $imageWidth, imageHeight $imageHeight"
         )
 
         val scale = maxOf(
             screenWidth.toFloat() / imageWidth, screenHeight.toFloat() / imageHeight
         )
-        Logger.logDebug(Tags.DimensionCrop, "scale $scale")
+        Logger.logDebug(LogTags.DimensionCrop, "scale $scale")
 
         val scaledWidth = imageWidth * scale
         val scaledHeight = imageHeight * scale
 
-        Logger.logDebug(Tags.DimensionCrop, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
+        Logger.logDebug(LogTags.DimensionCrop, "scaledWidth $scaledWidth, scaledHeight $scaledHeight")
 
         val offsetX = (scaledWidth - screenWidth) / 2f
         val offsetY = (scaledHeight - screenHeight) / 2f
 
-        Logger.logDebug(Tags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
+        Logger.logDebug(LogTags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
 
 
         val left = (offsetX / scale).toInt().coerceIn(0, imageWidth)
@@ -147,5 +155,13 @@ class ImageManagerViewModel(application: Application) : AndroidViewModel(applica
             BitmapFactory.decodeStream(stream, null, options)
         }
         return Pair(options.outWidth, options.outHeight)
+    }
+
+    fun enableImageSave() {
+        saveWallpaperEnabled = true
+    }
+
+    fun disableImageSave() {
+        saveWallpaperEnabled = false
     }
 }

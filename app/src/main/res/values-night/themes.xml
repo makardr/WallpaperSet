@@ -8,6 +8,10 @@
         <item name="android:windowTranslucentStatus">true</item>
     </style>
 
+    <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
+        <item name="enableEdgeToEdge">false</item>
+    </style>
+
     <style name="ImgButton" parent="Widget.AppCompat.ImageButton">
         <item name="android:layout_width">55dp</item>
         <item name="android:layout_height">55dp</item>
