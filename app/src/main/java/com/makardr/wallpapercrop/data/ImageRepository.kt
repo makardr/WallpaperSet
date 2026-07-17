@@ -20,23 +20,25 @@ class ImageRepository private constructor(context: Context) {
     private val imageDir = File(context.filesDir, FOLDER_NAME)
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    fun saveImage(uri: Uri) {
-        repositoryScope.launch {
-            val guid = UUID.randomUUID().toString()
-            val fileName = "${guid}.png"
-            val input = appContext.contentResolver.openInputStream(uri)
-                ?: throw IOException("Unable to open input stream for $uri")
+    fun saveImage(uri: Uri?) {
+        uri?.let {
+            repositoryScope.launch {
+                val guid = UUID.randomUUID().toString()
+                val fileName = "${guid}.png"
+                val input = appContext.contentResolver.openInputStream(uri)
+                    ?: throw IOException("Unable to open input stream for $uri")
 
-            //Create images folder if it does not exist
-            val imagesDir = imageDir.apply { mkdirs() }
-            val outputFile = File(imagesDir, fileName)
+                //Create images folder if it does not exist
+                val imagesDir = imageDir.apply { mkdirs() }
+                val outputFile = File(imagesDir, fileName)
 
-            input.use { stream ->
-                FileOutputStream(outputFile).use { output ->
-                    stream.copyTo(output)
+                input.use { stream ->
+                    FileOutputStream(outputFile).use { output ->
+                        stream.copyTo(output)
+                    }
                 }
+                Logger.logInfo(LogTags.FileSystem, "Image saved to $fileName")
             }
-            Logger.logInfo(LogTags.FileSystem, "Image saved to $fileName")
         }
     }
 
@@ -93,7 +95,6 @@ class ImageRepository private constructor(context: Context) {
                     failedToDelete = true
                 }
             }
-
         }
         return !failedToDelete
     }
@@ -111,6 +112,7 @@ class ImageRepository private constructor(context: Context) {
 
     companion object {
         private const val FOLDER_NAME = "images"
+
         @Volatile
         private var INSTANCE: ImageRepository? = null
 

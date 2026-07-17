@@ -25,6 +25,7 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
     val selectedImages: LiveData<Set<Uri>> = _selectedImages
 
     //Refresh contained images list inside adapter gallery
+    //TODO: Gallery is not refreshed reliably after image was saved
     fun refreshGallery() {
         viewModelScope.launch {
             _galleryImages.value = withContext(Dispatchers.IO) {
@@ -33,7 +34,6 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
         }
     }
 
-    //Clear selected images list inside this
     fun clearSelectedImagesList() {
         _selectedImages.value = emptySet()
     }
@@ -53,14 +53,11 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
     suspend fun deleteSelectedImages(): Boolean {
         val imagesToDelete = _selectedImages.value ?: return true
         if (imagesToDelete.isEmpty()) return true
-
-        return withContext(Dispatchers.IO) {
-            val result = imageRepository.deleteImages(imagesToDelete)
-            withContext(Dispatchers.Main) {
-                clearSelectedImagesList()
-                refreshGallery()
-            }
-            result
+        val result = imageRepository.deleteImages(imagesToDelete)
+        withContext(Dispatchers.Main) {
+            clearSelectedImagesList()
+            refreshGallery()
         }
+        return result
     }
 }

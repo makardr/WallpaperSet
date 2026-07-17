@@ -45,6 +45,7 @@ import com.makardr.wallpapercrop.activities.settings.SettingsActivity
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.data.ImageRepository
 import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -58,6 +59,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var uCropActivity: UCropActivity
     private lateinit var preferencesRepository: PreferencesRepository
+    private lateinit var imageRepository: ImageRepository
 
     //Interface elements
     private lateinit var wallpaperPreview: ImageView
@@ -70,13 +72,14 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         Logger.logInfo(LogTags.Lifecycle, "onCreate")
         preferencesRepository = PreferencesRepository.getInstance(this)
+        imageRepository = ImageRepository.getInstance(this)
         setupInterface()
         uCropActivity = UCropActivity(this, imageManager)
         collectEvents()
 
         if (savedInstanceState != null) {
             if (imageManager.getImageUri() != null) {
-                refreshPreviewImage(imageManager.getImageUri()!!)
+                refreshPreviewImage(imageManager.getImageUri())
                 enableInterface()
             }
         } else {
@@ -93,11 +96,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logDebug(LogTags.Lifecycle, "Starting event listening")
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 imageManager.refreshImageEventChannel.collect {
-                    if (imageManager.getImageUri() != null) {
-                        refreshPreviewImage(imageManager.getImageUri()!!)
-                    } else {
-                        Logger.logInfo(LogTags.Uri, "Image refresh failed, uri is null")
-                    }
+                    refreshPreviewImage(imageManager.getImageUri())
                     Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
                 }
             }
@@ -293,6 +292,13 @@ class MainActivity : AppCompatActivity() {
                 .setPositiveButton(R.string.delete) { _, _ ->
                     lifecycleScope.launch {
                         if (galleryAdapterViewModel.deleteSelectedImages()) {
+                            imageManager.getOriginUri()?.let { uri ->
+                                if (!uri.available(this@MainActivity)){
+                                    Logger.logInfo(LogTags.Uri, "Uri is not available on delete, resetting image")
+                                    imageManager.resetImage()
+                                }
+                            }
+                            disableInterface()
                             sendToast(getString(R.string.toast_delete_success))
                         } else {
                             sendToast(getString(R.string.toast_delete_failure))
@@ -343,7 +349,8 @@ class MainActivity : AppCompatActivity() {
         setWallpaper.setOnClickListener {
             applyWallpaperDialog.show()
             if (isTablet()) {
-                (applyWallpaperDialog as? BottomSheetDialog)?.behavior?.state = BottomSheetBehavior.STATE_EXPANDED
+                (applyWallpaperDialog as? BottomSheetDialog)?.behavior?.state =
+                    BottomSheetBehavior.STATE_EXPANDED
             }
         }
 
@@ -412,24 +419,44 @@ class MainActivity : AppCompatActivity() {
         tooltip.visibility = View.VISIBLE
     }
 
-    private fun refreshPreviewImage(uri: Uri) {
-        if (!uri.available(this@MainActivity)) {
-            Logger.logError(LogTags.Uri, "File does not exist, resetting uri: $uri")
-            imageManager.triggerFailState()
-            disableInterface()
-        } else {
-            Logger.logInfo(LogTags.Uri, "Refreshing preview image: $uri")
-            wallpaperPreview.load(uri) {
-                crossfade(true)
-                memoryCachePolicy(CachePolicy.DISABLED)
-                diskCachePolicy(CachePolicy.DISABLED)
+    private fun refreshPreviewImage(uri: Uri?) {
+        when {
+            uri == null -> {
+                Logger.logInfo(LogTags.Uri, "Refreshing preview image, uri is null")
+                wallpaperPreview.load(uri) {
+                    crossfade(true)
+                    memoryCachePolicy(CachePolicy.DISABLED)
+                    diskCachePolicy(CachePolicy.DISABLED)
+                }
+                disableInterface()
             }
-            enableInterface()
+
+            !uri.available(this@MainActivity) -> {
+                Logger.logError(LogTags.Uri, "File does not exist, resetting uri: $uri")
+                imageManager.resetImage()
+                disableInterface()
+            }
+
+            else -> {
+                Logger.logInfo(LogTags.Uri, "Refreshing preview image: $uri")
+                wallpaperPreview.load(uri) {
+                    crossfade(true)
+                    memoryCachePolicy(CachePolicy.DISABLED)
+                    diskCachePolicy(CachePolicy.DISABLED)
+                }
+                enableInterface()
+            }
         }
+
     }
 
     private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
         imageManager.setWallpaper(flag)
+        if (imageManager.isSaveEnabled() && preferencesRepository.galleryEnabled) {
+            imageRepository.saveImage(imageManager.getCurrentUri())
+        }
+        imageManager.disableImageSave()
+
         applyWallpaperDialog.hide()
         lifecycleScope.launch {
             Logger.logInfo(LogTags.SetWallpaper, "Exit delay started")
