@@ -15,8 +15,8 @@
     <style name="Theme.WallpaperFix" parent="Base.Theme.WallpaperFix" />
 
     <style name="IconButtonContainer">
-        <item name="android:layout_width">85dp</item>
-        <item name="android:layout_height">85dp</item>
+        <item name="android:layout_width">64dp</item>
+        <item name="android:layout_height">64dp</item>
         <item name="android:background">@drawable/bg_icon_overlay</item>
         <item name="android:foreground">?attr/selectableItemBackground</item>
         <item name="android:clickable">true</item>
@@ -26,8 +26,8 @@
     </style>
 
     <style name="ImgButtonIcon">
-        <item name="android:layout_width">48dp</item>
-        <item name="android:layout_height">48dp</item>
+        <item name="android:layout_width">32dp</item>
+        <item name="android:layout_height">32dp</item>
         <item name="android:scaleType">fitCenter</item>
         <item name="android:tint">@android:color/white</item>
     </style>
@@ -36,8 +36,8 @@
         <item name="android:layout_width">wrap_content</item>
         <item name="android:layout_height">wrap_content</item>
         <item name="android:textColor">@android:color/white</item>
-        <item name="android:textSize">11sp</item>
-        <item name="android:layout_marginTop">4dp</item>
+        <item name="android:textSize">10sp</item>
+        <item name="android:layout_marginTop">2dp</item>
         <item name="android:gravity">center</item>
         <item name="android:maxLines">1</item>
         <item name="android:ellipsize">end</item>

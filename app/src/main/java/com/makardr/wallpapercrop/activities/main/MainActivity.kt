@@ -376,12 +376,38 @@ class MainActivity : AppCompatActivity() {
             startActivity(Intent(this, SettingsActivity::class.java))
         }
 
-        val topStartControls = findViewById<View>(R.id.topStartControls)
-        val topEndControls = findViewById<View>(R.id.topEndControls)
+        val topPanelContainer = findViewById<View>(R.id.topPanelContainer)
+        val panelToggle = findViewById<View>(R.id.panelToggle)
+        val topControlsInner = findViewById<View>(R.id.topControls)
+        var isPanelExpanded = true
+
+        panelToggle.setOnClickListener {
+            isPanelExpanded = !isPanelExpanded
+            if (isPanelExpanded) {
+                topControlsInner.visibility = View.VISIBLE
+                topControlsInner.animate()
+                    .translationX(0f)
+                    .alpha(1f)
+                    .setDuration(300)
+                    .setListener(null)
+                    .start()
+                panelToggle.setBackgroundResource(R.drawable.bg_semicircle_empty)
+            } else {
+                val distance = -(topControlsInner.left + topControlsInner.width).toFloat()
+                topControlsInner.animate()
+                    .translationX(distance)
+                    .alpha(0f)
+                    .setDuration(300)
+                    .withEndAction { 
+                        topControlsInner.visibility = View.GONE 
+                    }
+                    .start()
+                panelToggle.setBackgroundResource(R.drawable.bg_semicircle_filled)
+            }
+        }
 
         listOf(
-            topStartControls,
-            topEndControls,
+            topPanelContainer,
             setWallpaper,
         ).forEach { view ->
             val xmlMarginTopRecord = view.marginTop
