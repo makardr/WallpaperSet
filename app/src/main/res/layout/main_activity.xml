@@ -33,15 +33,19 @@
         android:clipChildren="false"
         android:clipToPadding="false">
 
-        <View
+        <ImageView
             android:id="@+id/panelToggle"
-            android:layout_width="20dp"
+            android:layout_width="40dp"
             android:layout_height="64dp"
             android:layout_gravity="start|center_vertical"
             android:background="@drawable/bg_semicircle_empty"
             android:clickable="true"
             android:focusable="true"
-            android:foreground="?attr/selectableItemBackground" />
+            android:foreground="@drawable/ripple_semicircle"
+            android:src="@drawable/ic_arrow_left"
+            android:scaleType="centerInside"
+            android:paddingEnd="8dp"
+            android:contentDescription="@null" />
 
         <LinearLayout
             android:id="@+id/topControls"

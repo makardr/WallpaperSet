@@ -377,7 +377,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         val topPanelContainer = findViewById<View>(R.id.topPanelContainer)
-        val panelToggle = findViewById<View>(R.id.panelToggle)
+        val panelToggle = findViewById<ImageView>(R.id.panelToggle)
         val topControlsInner = findViewById<View>(R.id.topControls)
         var isPanelExpanded = true
 
@@ -392,6 +392,7 @@ class MainActivity : AppCompatActivity() {
                     .setListener(null)
                     .start()
                 panelToggle.setBackgroundResource(R.drawable.bg_semicircle_empty)
+                panelToggle.setImageResource(R.drawable.ic_arrow_left)
             } else {
                 val distance = -(topControlsInner.left + topControlsInner.width).toFloat()
                 topControlsInner.animate()
@@ -403,6 +404,7 @@ class MainActivity : AppCompatActivity() {
                     }
                     .start()
                 panelToggle.setBackgroundResource(R.drawable.bg_semicircle_filled)
+                panelToggle.setImageResource(R.drawable.ic_arrow_right)
             }
         }
 
