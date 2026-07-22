@@ -20,7 +20,7 @@
     <string name="delete_images">Delete images</string>
     <string name="toast_delete_success">Delete success</string>
     <string name="toast_delete_failure">Delete failure</string>
-    <string name="gallery_empty">No images found</string>
+    <string name="gallery_empty">No images found. New images will appear here after you apply wallpapers.</string>
     <string name="delete_dialog_title">Delete Images</string>
     <string name="delete_dialog_message">Are you sure you want to delete the selected images?</string>
     <string name="cancel">Cancel</string>
