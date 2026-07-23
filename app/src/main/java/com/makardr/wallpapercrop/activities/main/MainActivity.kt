@@ -5,6 +5,8 @@ import android.app.Dialog
 import android.app.WallpaperManager
 import android.content.Intent
 import android.content.pm.ActivityInfo
+import android.graphics.BitmapFactory
+import android.graphics.Rect
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
@@ -46,8 +48,10 @@ import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
 import com.makardr.wallpapercrop.data.PreferencesRepository
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import kotlin.time.Duration.Companion.milliseconds
 
 
@@ -72,9 +76,15 @@ class MainActivity : AppCompatActivity() {
     private lateinit var topControlsInner: View
     private lateinit var panelToggle: ImageView
 
+    private var screenWidth: Int = 0
+    private var screenHeight: Int = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Logger.logInfo(LogTags.Lifecycle, "onCreate")
+        screenWidth = resources.displayMetrics.widthPixels
+        screenHeight = resources.displayMetrics.heightPixels
+
         preferencesRepository = PreferencesRepository.getInstance(this)
         setupInterface()
         setInterfaceEnabled(false)
@@ -82,8 +92,8 @@ class MainActivity : AppCompatActivity() {
         collectEvents()
 
         if (savedInstanceState != null) {
-            if (imageManager.getImageUri() != null) {
-                refreshPreviewImage(imageManager.getImageUri())
+            if (imageManager.getDisplayedImageUri() != null) {
+                refreshPreviewImage(imageManager.getDisplayedImageUri())
                 setInterfaceEnabled(true)
             }
             isPanelExpanded = savedInstanceState.getBoolean(keyPanelExpanded)
@@ -99,7 +109,7 @@ class MainActivity : AppCompatActivity() {
             Logger.logDebug(LogTags.Lifecycle, "Starting event listening")
             repeatOnLifecycle(Lifecycle.State.STARTED) {
                 imageManager.refreshImageEventChannel.collect {
-                    refreshPreviewImage(imageManager.getImageUri())
+                    refreshPreviewImage(imageManager.getDisplayedImageUri())
                     Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
                 }
             }
@@ -204,7 +214,7 @@ class MainActivity : AppCompatActivity() {
                     galleryAdapterViewModel.toggleSelection(uri)
                 } else {
                     imageManager.updateOriginUri(uri)
-                    imageManager.disableImageSave()
+                    imageManager.saveWallpaperEnabled = false
                     galleryDialog.dismiss()
                 }
             },
@@ -459,20 +469,86 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun setOnClickWallpaper(@WallpaperFlag flag: Int) {
-        imageManager.setWallpaper(flag)
-        if (imageManager.isSaveEnabled() && preferencesRepository.galleryEnabled) {
-            galleryAdapterViewModel.saveImage(imageManager.getCurrentUri())
-        }
-        imageManager.disableImageSave()
-
-        applyWallpaperDialog.hide()
+        val uri = imageManager.getDisplayedImageUri() ?: return
         lifecycleScope.launch {
-            Logger.logInfo(LogTags.SetWallpaper, "Exit delay started")
-            sendToast(getString(R.string.toast_wallpaper_applied))
-            delay(1000.milliseconds)
-            Logger.logInfo(LogTags.SetWallpaper, "Exit delay finished, exiting to main screen")
-            exitToTheMainScreen()
+            val success = withContext(Dispatchers.IO) {
+                runCatching {
+                    val wallpaperManager = WallpaperManager.getInstance(this@MainActivity)
+                    contentResolver.openInputStream(uri)?.use { stream ->
+                        wallpaperManager.setStream(stream, calculateCropHint(uri), true, flag)
+                    } ?: error("Could not open input stream")
+                }
+            }
+            if (success.isFailure) {
+                Logger.logError(
+                    LogTags.SetWallpaper,
+                    "Failed to apply wallpaper ${success.exceptionOrNull()}"
+                )
+                sendToast("Failed to apply wallpaper ${success.exceptionOrNull()?.message.toString()}")
+            } else {
+                if (imageManager.saveWallpaperEnabled && preferencesRepository.galleryEnabled) {
+                    galleryAdapterViewModel.saveImage(uri)
+                }
+                imageManager.saveWallpaperEnabled = false
+                applyWallpaperDialog.hide()
+                sendToast(getString(R.string.toast_wallpaper_applied))
+
+                Logger.logInfo(LogTags.SetWallpaper, "Exit delay started")
+
+                delay(1000.milliseconds)
+                Logger.logInfo(
+                    LogTags.SetWallpaper,
+                    "Exit delay finished, exiting to main screen"
+                )
+                exitToTheMainScreen()
+            }
         }
+
+    }
+
+    private fun calculateCropHint(uri: Uri): Rect {
+        Logger.logDebug(LogTags.DimensionCrop, "========================================")
+        val (imageWidth, imageHeight) = getImageDimensions(uri)
+        Logger.logDebug(
+            LogTags.DimensionCrop,
+            "screenWidth $screenWidth, screenHeight $screenHeight, imageWidth $imageWidth, imageHeight $imageHeight"
+        )
+
+        val scale = maxOf(
+            screenWidth.toFloat() / imageWidth, screenHeight.toFloat() / imageHeight
+        )
+        Logger.logDebug(LogTags.DimensionCrop, "scale $scale")
+
+        val scaledWidth = imageWidth * scale
+        val scaledHeight = imageHeight * scale
+
+        Logger.logDebug(
+            LogTags.DimensionCrop,
+            "scaledWidth $scaledWidth, scaledHeight $scaledHeight"
+        )
+
+        val offsetX = (scaledWidth - screenWidth) / 2f
+        val offsetY = (scaledHeight - screenHeight) / 2f
+
+        Logger.logDebug(LogTags.DimensionCrop, "offsetX $offsetX, offsetY $offsetY")
+
+
+        val left = (offsetX / scale).toInt().coerceIn(0, imageWidth)
+        val top = (offsetY / scale).toInt().coerceIn(0, imageHeight)
+        val right = ((offsetX + screenWidth) / scale).toInt().coerceIn(left, imageWidth)
+        val bottom = ((offsetY + screenHeight) / scale).toInt().coerceIn(top, imageHeight)
+
+        return Rect(left, top, right, bottom)
+    }
+
+    private fun getImageDimensions(uri: Uri): Pair<Int, Int> {
+        val options = BitmapFactory.Options().apply {
+            inJustDecodeBounds = true
+        }
+        contentResolver.openInputStream(uri)?.use { stream ->
+            BitmapFactory.decodeStream(stream, null, options)
+        }
+        return Pair(options.outWidth, options.outHeight)
     }
 
     private fun exitToTheMainScreen() {
