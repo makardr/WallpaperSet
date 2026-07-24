@@ -97,10 +97,10 @@ class MainActivity : AppCompatActivity() {
                 setInterfaceEnabled(true)
             }
             isPanelExpanded = savedInstanceState.getBoolean(keyPanelExpanded)
+            applyPanelState()
         } else {
             handleIncomingIntent(intent)
         }
-        applyPanelState()
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
     }
 
