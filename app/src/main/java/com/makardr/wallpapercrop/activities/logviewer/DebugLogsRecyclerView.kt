@@ -30,7 +30,8 @@ class DebugLogsRecyclerView(private var logs: List<LogEntry>) :
             when (entry.level) {
                 Log.ERROR -> Color.RED
                 Log.WARN -> Color.rgb(255, 152, 0)
-                else -> Color.BLACK
+                //TODO: theme aware color
+                else -> Color.BLUE
             }
         )
     }

@@ -97,10 +97,10 @@ class MainActivity : AppCompatActivity() {
                 setInterfaceEnabled(true)
             }
             isPanelExpanded = savedInstanceState.getBoolean(keyPanelExpanded)
-            applyPanelState()
         } else {
             handleIncomingIntent(intent)
         }
+        applyPanelState()
         Logger.logCurrentAppState(imageManager, wallpaperPreview, tooltip)
     }
 
@@ -295,7 +295,7 @@ class MainActivity : AppCompatActivity() {
         galleryAdapterViewModel.selectedImages.observe(this) { selectedSet ->
             galleryAdapter.selectedUris = selectedSet
             galleryDeleteButton.visibility =
-                if (selectedSet.isNotEmpty()) View.VISIBLE else View.GONE
+                if (selectedSet.isNotEmpty()) View.VISIBLE else View.INVISIBLE
         }
 
 
@@ -385,8 +385,6 @@ class MainActivity : AppCompatActivity() {
                 insets
             }
         }
-
-        findViewById<View>(R.id.preferencesButton).visibility = View.GONE
 
         if (preferencesRepository.galleryEnabled) {
             openGalleryButton.visibility = View.VISIBLE
