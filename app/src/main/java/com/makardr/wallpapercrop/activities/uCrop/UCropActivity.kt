@@ -48,12 +48,11 @@ class UCropActivity(
         when (result.resultCode) {
             Activity.RESULT_OK -> {
                 //val croppedUri = UCrop.getOutput(result.data!!)
-                imageManager.updateIsCropped()
+                imageManager.setIsCropped()
             }
 
             Activity.RESULT_CANCELED -> {
                 Logger.logInfo(LogTags.CropResult, "User cancelled crop")
-                imageManager.resetCrop()
             }
 
             UCrop.RESULT_ERROR -> {

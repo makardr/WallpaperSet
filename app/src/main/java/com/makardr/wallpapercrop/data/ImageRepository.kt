@@ -20,11 +20,10 @@ class ImageRepository private constructor(context: Context) {
     private val imageDir = File(context.filesDir, FOLDER_NAME)
     private val repositoryScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    fun saveImage(uri: Uri?) {
-        uri?.let {
-            repositoryScope.launch {
-                val guid = UUID.randomUUID().toString()
-                val fileName = "${guid}.png"
+    suspend fun saveImage(uri: Uri?) {
+        uri?.let { uri ->
+            withContext(Dispatchers.IO) {
+                val fileName = "${UUID.randomUUID()}.png"
                 val input = appContext.contentResolver.openInputStream(uri)
                     ?: throw IOException("Unable to open input stream for $uri")
 
@@ -38,30 +37,26 @@ class ImageRepository private constructor(context: Context) {
                     }
                 }
                 Logger.logInfo(LogTags.FileSystem, "Image saved to $fileName")
+                outputFile
             }
         }
-    }
 
-    fun listSavedImages(): List<File> {
-        return imageDir.listFiles { file -> file.isFile }
-            ?.sortedByDescending { it.lastModified() }
-            ?: emptyList()
     }
 
     fun listSavedImageUris(): List<Uri> {
-        return listSavedImages().map { file ->
-            Uri.fromFile(file)
-        }
+        return imageDir.listFiles { file -> file.isFile }
+            ?.sortedByDescending { it.lastModified() }
+            ?.map { Uri.fromFile(it) }
+            ?: emptyList()
     }
 
-    fun printAllFiles() {
+    private fun printAllFiles() {
         repositoryScope.launch {
             appContext.filesDir.walkTopDown().forEach { file ->
                 val relativePath = file.relativeTo(appContext.filesDir).path
                 if (file.isDirectory) {
                     Logger.logDebug(
-                        LogTags.FileSystem,
-                        "[DIR] ${file.relativeTo(appContext.filesDir).path}"
+                        LogTags.FileSystem, "[DIR] ${file.relativeTo(appContext.filesDir).path}"
                     )
                 } else {
                     Logger.logDebug(LogTags.FileSystem, relativePath)
@@ -76,11 +71,13 @@ class ImageRepository private constructor(context: Context) {
         withContext(Dispatchers.IO) {
             for (uri in uriList) {
                 val deleted = when (uri.scheme) {
-                    ContentResolver.SCHEME_CONTENT ->
-                        appContext.contentResolver.delete(uri, null, null) > 0
+                    ContentResolver.SCHEME_CONTENT -> appContext.contentResolver.delete(
+                        uri,
+                        null,
+                        null
+                    ) > 0
 
-                    ContentResolver.SCHEME_FILE ->
-                        uri.path?.let { File(it).delete() } ?: false
+                    ContentResolver.SCHEME_FILE -> uri.path?.let { File(it).delete() } ?: false
 
                     else -> {
                         Logger.logError(LogTags.FileSystem, "Unsupported URI scheme: $uri")

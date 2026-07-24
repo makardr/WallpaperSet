@@ -25,12 +25,18 @@ class GalleryAdapterViewModel(application: Application) : AndroidViewModel(appli
     val selectedImages: LiveData<Set<Uri>> = _selectedImages
 
     //Refresh contained images list inside adapter gallery
-    //TODO: Gallery is not refreshed reliably after image was saved
     fun refreshGallery() {
         viewModelScope.launch {
             _galleryImages.value = withContext(Dispatchers.IO) {
                 imageRepository.listSavedImageUris()
             }
+        }
+    }
+
+    fun saveImage(uri: Uri?) {
+        viewModelScope.launch {
+            imageRepository.saveImage(uri)
+            refreshGallery()
         }
     }
 
