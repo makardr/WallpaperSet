@@ -38,7 +38,7 @@
             android:layout_width="40dp"
             android:layout_height="64dp"
             android:layout_gravity="start|center_vertical"
-            android:background="@drawable/bg_semicircle_empty"
+            android:background="@drawable/bg_semicircle_filled"
             android:clickable="true"
             android:focusable="true"
             android:foreground="@drawable/ripple_semicircle"
