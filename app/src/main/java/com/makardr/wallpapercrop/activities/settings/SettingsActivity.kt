@@ -38,7 +38,6 @@ class SettingsActivity : AppCompatActivity() {
         enableEdgeToEdge()
         setContentView(R.layout.settings_activity)
 
-        //TODO: switching gallery preference is unreliably updates gallery button state
         findViewById<Button>(R.id.galleryPreference).setOnClickListener {
             preferencesRepository.galleryEnabled = !preferencesRepository.galleryEnabled
             Logger.logInfo(
@@ -57,6 +56,10 @@ class SettingsActivity : AppCompatActivity() {
         findViewById<Button>(R.id.debugLogs).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Debug logs button clicked")
             startActivity(Intent(this, DebugLogsActivity::class.java))
+        }
+
+        findViewById<Button>(R.id.returnButton).setOnClickListener {
+            finish()
         }
 
         ViewCompat.setOnApplyWindowInsetsListener(findViewById(R.id.main)) { v, insets ->

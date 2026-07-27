@@ -17,22 +17,6 @@ class GalleryAdapter(
 ) : ListAdapter<GalleryAdapter.GalleryItem, GalleryAdapter.ViewHolder>(DIFF_CALLBACK) {
     data class GalleryItem(val uri: Uri, val isSelected: Boolean)
 
-    var images: List<Uri> = emptyList()
-        set(value) {
-            field = value
-            submitCombinedList()
-        }
-
-    var selectedUris: Set<Uri> = emptySet()
-        set(value) {
-            field = value
-            submitCombinedList()
-        }
-
-    private fun submitCombinedList() {
-        submitList(images.map { GalleryItem(it, selectedUris.contains(it)) })
-    }
-
     class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
         val wallpaperThumbnail: ImageView = view.findViewById(R.id.wallpaperThumbnail)
         val selectionOverlay: View = view.findViewById(R.id.selectionOverlay)
@@ -77,6 +61,22 @@ class GalleryAdapter(
     }
 
     override fun getItemCount(): Int = images.size
+
+    var images: List<Uri> = emptyList()
+        set(value) {
+            field = value
+            submitCombinedList()
+        }
+
+    var selectedUris: Set<Uri> = emptySet()
+        set(value) {
+            field = value
+            submitCombinedList()
+        }
+
+    private fun submitCombinedList() {
+        submitList(images.map { GalleryItem(it, selectedUris.contains(it)) })
+    }
 
     companion object {
         private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<GalleryItem>() {

@@ -9,7 +9,7 @@
     </style>
 
     <style name="AppBottomSheetDialogTheme" parent="Theme.MaterialComponents.DayNight.BottomSheetDialog">
-        <item name="enableEdgeToEdge">false</item>
+        <item name="enableEdgeToEdge">true</item>
     </style>
 
     <style name="ImgButton" parent="Widget.AppCompat.ImageButton">

@@ -11,6 +11,7 @@
         android:id="@+id/galleryPreference"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
         android:text="Enable gallery"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
@@ -30,4 +31,14 @@
         android:text="Debug logs"
         app:layout_constraintStart_toEndOf="@+id/wipeData"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/returnButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_marginTop="3dp"
+        android:text="Return"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/galleryPreference" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -75,6 +75,7 @@ class MainActivity : AppCompatActivity() {
     private lateinit var galleryDialog: BottomSheetDialog
     private lateinit var topControlsInner: View
     private lateinit var panelToggle: ImageView
+    private lateinit var openGalleryButton: View
 
     private var screenWidth: Int = 0
     private var screenHeight: Int = 0
@@ -135,6 +136,16 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
         Logger.logDebug(LogTags.Lifecycle, "onStart")
         galleryAdapterViewModel.refreshGallery()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        Logger.logDebug(LogTags.Lifecycle, "onResume")
+        if (!preferencesRepository.galleryEnabled) {
+            openGalleryButton.visibility = View.GONE
+        } else {
+            openGalleryButton.visibility = View.VISIBLE
+        }
     }
 
     override fun onNewIntent(intent: Intent) {
@@ -303,8 +314,6 @@ class MainActivity : AppCompatActivity() {
             galleryAdapterViewModel.clearSelectedImagesList()
         }
 
-
-
         galleryLayout.findViewById<RecyclerView>(R.id.galleryRecyclerView).adapter = galleryAdapter
 
         wallpaperPreview = findViewById(R.id.wallpaperPreview)
@@ -313,7 +322,7 @@ class MainActivity : AppCompatActivity() {
 
         setWallpaper = findViewById(R.id.setWallpaperButton)
 
-        val openGalleryButton = findViewById<View>(R.id.openGallery)
+        openGalleryButton = findViewById(R.id.openGallery)
 
         setWallpaperLayout.findViewById<Button>(R.id.optionHome).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "setWallpaperSystem button pressed")
@@ -384,12 +393,6 @@ class MainActivity : AppCompatActivity() {
                 }
                 insets
             }
-        }
-
-        if (preferencesRepository.galleryEnabled) {
-            openGalleryButton.visibility = View.VISIBLE
-        } else {
-            openGalleryButton.visibility = View.INVISIBLE
         }
     }
 
