@@ -1,13 +1,22 @@
 package com.makardr.wallpapercrop.common.utils
 
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.net.Uri
+import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.data.model.LogTags
 import java.io.File
 import java.io.FileNotFoundException
 
 fun Context.isTablet(): Boolean {
     return resources.configuration.smallestScreenWidthDp >= 600
+}
+
+@Suppress("DEPRECATION")
+fun Activity.startActivitySlide(intent: Intent) {
+    startActivity(intent)
+    overridePendingTransition(R.anim.slide_in_right, R.anim.slide_out_left)
 }
 
 fun Uri.available(context: Context): Boolean {

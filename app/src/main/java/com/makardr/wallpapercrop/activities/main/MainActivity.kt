@@ -47,6 +47,7 @@ import com.makardr.wallpapercrop.activities.settings.SettingsActivity
 import com.makardr.wallpapercrop.activities.uCrop.UCropActivity
 import com.makardr.wallpapercrop.common.utils.available
 import com.makardr.wallpapercrop.common.utils.isTablet
+import com.makardr.wallpapercrop.common.utils.startActivitySlide
 import com.makardr.wallpapercrop.data.PreferencesRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -366,7 +367,7 @@ class MainActivity : AppCompatActivity() {
 
         findViewById<View>(R.id.preferencesButton).setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Open Settings button pressed")
-            startActivity(Intent(this, SettingsActivity::class.java))
+            startActivitySlide(Intent(this, SettingsActivity::class.java))
         }
 
         val topPanelContainer = findViewById<View>(R.id.topPanelContainer)
