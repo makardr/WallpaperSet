@@ -3,14 +3,14 @@ package com.makardr.wallpapercrop.common.utils
 import android.util.Log
 import android.widget.ImageView
 import android.widget.TextView
+import com.makardr.wallpapercrop.BuildConfig
 import com.makardr.wallpapercrop.activities.main.viewmodels.ImageManagerViewModel
 import com.makardr.wallpapercrop.data.LogsRepository
 import com.makardr.wallpapercrop.data.model.LogEntry
 import com.makardr.wallpapercrop.data.model.LogTags
 
 object Logger {
-    private const val ENABLED: Boolean = true
-    private const val DISABLED: Boolean = false
+    private val ENABLED: Boolean = BuildConfig.DEBUG
     private val logRepository: LogsRepository = LogsRepository.getInstance()
 
     fun logInfo(tag: LogTags, message: String) {

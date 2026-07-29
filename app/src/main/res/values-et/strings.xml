@@ -25,4 +25,19 @@
     <string name="delete_dialog_message">Kas olete kindel, et soovite valitud pildid kustutada?</string>
     <string name="cancel">Tühista</string>
     <string name="delete">Kustuta</string>
+    <string name="settings_title">Seaded</string>
+    <string name="settings_header_general">Üldine</string>
+    <string name="settings_gallery_title">Luba galerii</string>
+    <string name="settings_gallery_summary">Näitab pilte galeriist</string>
+    <string name="settings_header_data">Andmed</string>
+    <string name="settings_wipe_title">Tühjenda vahemälu</string>
+    <string name="settings_wipe_summary">Kustutage kõik allalaaditud pildid</string>
+    <string name="settings_debug_title">Silumislogid</string>
+    <string name="settings_debug_summary">Rakenduse sündmuste vaatamine</string>
+    <string name="settings_header_about">Rakendusest</string>
+    <string name="settings_authors_title">Autorid</string>
+    <string name="settings_author_makar_name">Makar Drozdik</string>
+    <string name="settings_author_makar_role">Project Lead, App Architecture, Android Development (Kotlin)</string>
+    <string name="settings_author_aleksandr_name">Aleksandr Haruzin</string>
+    <string name="settings_author_aleksandr_role">UI Development</string>
 </resources>
