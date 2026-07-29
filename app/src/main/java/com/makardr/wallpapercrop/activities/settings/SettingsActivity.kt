@@ -22,6 +22,7 @@ import com.makardr.wallpapercrop.common.utils.isTablet
 import com.makardr.wallpapercrop.data.ImageRepository
 import com.makardr.wallpapercrop.data.PreferencesRepository
 import com.makardr.wallpapercrop.data.model.LogTags
+import com.makardr.wallpapercrop.BuildConfig
 import kotlinx.coroutines.launch
 
 class SettingsActivity : AppCompatActivity() {
@@ -67,9 +68,15 @@ class SettingsActivity : AppCompatActivity() {
             }
         }
 
-        findViewById<LinearLayout>(R.id.debugLogs).setOnClickListener {
+        val debugLogsButton = findViewById<LinearLayout>(R.id.debugLogs)
+
+        debugLogsButton.setOnClickListener {
             Logger.logInfo(LogTags.UserInteraction, "Debug logs button clicked")
             startActivity(Intent(this, DebugLogsActivity::class.java))
+        }
+
+        if (!BuildConfig.DEBUG) {
+            debugLogsButton.visibility = View.GONE
         }
 
         findViewById<LinearLayout>(R.id.authorMakar).setOnClickListener {

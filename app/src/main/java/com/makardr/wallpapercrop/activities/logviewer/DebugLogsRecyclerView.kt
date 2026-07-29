@@ -5,6 +5,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.makardr.wallpapercrop.R
 import com.makardr.wallpapercrop.data.model.LogEntry
@@ -24,14 +25,14 @@ class DebugLogsRecyclerView(private var logs: List<LogEntry>) :
 
     override fun onBindViewHolder(holder: LogViewHolder, position: Int) {
         val entry = logs[position]
+        val context = holder.textView.context
         val time = SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(entry.timestamp)
         holder.textView.text = "$time [${entry.tag}] ${entry.message}"
         holder.textView.setTextColor(
             when (entry.level) {
                 Log.ERROR -> Color.RED
-                Log.WARN -> Color.rgb(255, 152, 0)
-                //TODO: theme aware color
-                else -> Color.BLUE
+                Log.WARN -> Color.YELLOW
+                else -> ContextCompat.getColor(context, R.color.text_color)
             }
         )
     }
@@ -39,7 +40,12 @@ class DebugLogsRecyclerView(private var logs: List<LogEntry>) :
     override fun getItemCount() = logs.size
 
     fun updateLogs(newLogs: List<LogEntry>) {
+        val oldSize = logs.size
         logs = newLogs
-        notifyDataSetChanged()
+        if (newLogs.size > oldSize) {
+            notifyItemRangeInserted(oldSize, newLogs.size - oldSize)
+        } else if (newLogs.size < oldSize) {
+            notifyDataSetChanged()
+        }
     }
 }

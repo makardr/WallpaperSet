@@ -37,7 +37,7 @@
     <string name="settings_header_about">About</string>
     <string name="settings_authors_title">Authors</string>
     <string name="settings_author_makar_name">Makar Drozdik</string>
-    <string name="settings_author_makar_role">Backend Developer</string>
+    <string name="settings_author_makar_role">Project Lead, App Architecture, Android Development (Kotlin)</string>
     <string name="settings_author_aleksandr_name">Aleksandr Haruzin</string>
-    <string name="settings_author_aleksandr_role">Frontend Developer</string>
+    <string name="settings_author_aleksandr_role">UI Development</string>
 </resources>

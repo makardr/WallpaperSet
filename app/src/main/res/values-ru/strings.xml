@@ -28,7 +28,7 @@
     <string name="settings_title">Настройки</string>
     <string name="settings_header_general">Общие</string>
     <string name="settings_gallery_title">Включить галерею</string>
-    <string name="settings_gallery_summary">Показать или скрыть кнопку галерея</string>
+    <string name="settings_gallery_summary">Показать или скрыть галерею</string>
     <string name="settings_header_data">Данные</string>
     <string name="settings_wipe_title">Очистить кэш</string>
     <string name="settings_wipe_summary">Удалить все предыдущие изображения</string>
@@ -37,7 +37,7 @@
     <string name="settings_header_about">О приложении</string>
     <string name="settings_authors_title">Авторы</string>
     <string name="settings_author_makar_name">Макар Дроздик</string>
-    <string name="settings_author_makar_role">Backend Developer</string>
+    <string name="settings_author_makar_role">Project Lead, App Architecture, Android Development (Kotlin)</string>
     <string name="settings_author_aleksandr_name">Александр Харузин</string>
-    <string name="settings_author_aleksandr_role">Frontend Developer</string>
+    <string name="settings_author_aleksandr_role">UI Development</string>
 </resources>
